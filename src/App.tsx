@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BookOpen, 
@@ -12,13 +12,18 @@ import {
   ArrowRight,
   Bookmark,
   BookmarkCheck,
-  X
+  X,
+  Key,
+  Loader2
 } from 'lucide-react';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from './firebase';
 import { CHAPTERS, type Chapter } from './constants';
 import { cn } from './lib/utils';
 import ShinyText from './components/ShinyText';
 
 export default function App() {
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [view, setView] = useState<'home' | 'reading'>('home');
   const [bookmarks, setBookmarks] = useState<Record<number, number>>({});
@@ -55,6 +60,14 @@ export default function App() {
     const handleFocus = () => setIsBlurred(false);
     window.addEventListener('blur', handleBlur);
     window.addEventListener('focus', handleFocus);
+
+    // Check authorization
+    const access = localStorage.getItem('el-acto-access');
+    if (access === 'granted') {
+      setIsAuthorized(true);
+    } else {
+      setIsAuthorized(false);
+    }
 
     // Simulate initial loading
     const timer = setTimeout(() => setIsLoading(false), 3500);
@@ -117,6 +130,8 @@ export default function App() {
       <AnimatePresence mode="wait">
         {isLoading ? (
           <LoadingScreen key="loading" />
+        ) : !isAuthorized ? (
+          <AccessGate key="access" onGrant={() => setIsAuthorized(true)} />
         ) : (
           <motion.div
             key="content"
@@ -206,6 +221,137 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function AccessGate({ onGrant, key }: { onGrant: () => void; key?: string }) {
+  const [code, setCode] = useState('');
+  const [status, setStatus] = useState<'idle' | 'checking' | 'error' | 'success'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!code.trim()) return;
+
+    setStatus('checking');
+    setErrorMsg('');
+
+    try {
+      const codeRef = doc(db, 'access_codes', code.trim().toUpperCase());
+      const codeSnap = await getDoc(codeRef);
+
+      if (!codeSnap.exists()) {
+        setStatus('error');
+        setErrorMsg('Código inválido. Verifica e intenta de nuevo.');
+        return;
+      }
+
+      const data = codeSnap.data();
+      if (data.isUsed) {
+        setStatus('error');
+        setErrorMsg('Este código ya ha sido utilizado.');
+        return;
+      }
+
+      // Mark as used
+      await updateDoc(codeRef, {
+        isUsed: true,
+        usedAt: serverTimestamp()
+      });
+
+      setStatus('success');
+      localStorage.setItem('el-acto-access', 'granted');
+      setTimeout(onGrant, 1500);
+    } catch (error) {
+      console.error("Verification error:", error);
+      setStatus('error');
+      setErrorMsg('Error de conexión. Intenta más tarde.');
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[150] bg-bg flex items-center justify-center p-6"
+    >
+      <div className="w-full max-w-md space-y-12 text-center">
+        <div className="space-y-4">
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="w-20 h-20 bg-accent/10 rounded-3xl flex items-center justify-center mx-auto text-accent"
+          >
+            <Key size={32} />
+          </motion.div>
+          <h1 className="text-4xl font-serif font-bold tracking-tight">Acceso Anticipado</h1>
+          <p className="text-muted leading-relaxed">
+            Ingresa tu código exclusivo para desbloquear la lectura de <span className="text-white italic">"El Acto"</span>.
+          </p>
+        </div>
+
+        <form onSubmit={handleVerify} className="space-y-6">
+          <div className="relative group">
+            <input 
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="INGRESA TU CÓDIGO"
+              disabled={status === 'checking' || status === 'success'}
+              className={cn(
+                "w-full bg-white/5 border-2 border-white/10 rounded-2xl px-6 py-5 text-center font-mono text-xl tracking-[0.3em] uppercase transition-all focus:outline-none focus:border-accent/50",
+                status === 'error' && "border-red-500/50 text-red-400",
+                status === 'success' && "border-green-500/50 text-green-400"
+              )}
+            />
+            {status === 'checking' && (
+              <div className="absolute right-6 top-1/2 -translate-y-1/2 text-accent animate-spin">
+                <Loader2 size={24} />
+              </div>
+            )}
+          </div>
+
+          <AnimatePresence mode="wait">
+            {status === 'error' && (
+              <motion.p 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="text-red-400 text-sm font-medium"
+              >
+                {errorMsg}
+              </motion.p>
+            )}
+            {status === 'success' && (
+              <motion.p 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-green-400 text-sm font-medium flex items-center justify-center gap-2"
+              >
+                <BookmarkCheck size={16} />
+                Acceso concedido. Bienvenido.
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          <button 
+            type="submit"
+            disabled={status === 'checking' || status === 'success' || !code.trim()}
+            className="w-full py-5 bg-ink text-bg font-bold rounded-2xl hover:bg-accent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
+          >
+            {status === 'checking' ? 'Verificando...' : 'Desbloquear Historia'}
+            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+        </form>
+
+        <div className="pt-12 border-t border-white/5">
+          <p className="text-xs text-muted/50 uppercase tracking-widest">
+            ¿No tienes un código? Contacta al autor.
+          </p>
+        </div>
+      </div>
+    </motion.div>
   );
 }
 

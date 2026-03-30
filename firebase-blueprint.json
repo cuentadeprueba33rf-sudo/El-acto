@@ -1,0 +1,31 @@
+{
+  "entities": {
+    "access_code": {
+      "title": "Access Code",
+      "description": "A one-time use code for early access to the story.",
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The unique alphanumeric code."
+        },
+        "isUsed": {
+          "type": "boolean",
+          "description": "Whether the code has already been redeemed."
+        },
+        "usedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the code was redeemed."
+        }
+      },
+      "required": ["code", "isUsed"]
+    }
+  },
+  "firestore": {
+    "/access_codes/{codeId}": {
+      "schema": "access_code",
+      "description": "Collection of codes for early access."
+    }
+  }
+}
