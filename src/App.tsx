@@ -16,14 +16,19 @@ import {
 } from 'lucide-react';
 import { CHAPTERS, type Chapter } from './constants';
 import { cn } from './lib/utils';
+import ShinyText from './components/ShinyText';
 
 export default function App() {
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [view, setView] = useState<'home' | 'reading'>('home');
   const [bookmarks, setBookmarks] = useState<Record<number, number>>({});
   const [showLockedModal, setShowLockedModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Simulate initial loading
+    const timer = setTimeout(() => setIsLoading(false), 3500);
+    
     const saved = localStorage.getItem('el-acto-bookmarks');
     if (saved) {
       try {
@@ -32,6 +37,8 @@ export default function App() {
         console.error("Error loading bookmarks", e);
       }
     }
+
+    return () => clearTimeout(timer);
   }, []);
 
   const saveBookmark = (chapterId: number, scrollY: number) => {
@@ -63,20 +70,33 @@ export default function App() {
   return (
     <div className="min-h-screen bg-bg text-ink selection:bg-accent selection:text-bg">
       <AnimatePresence mode="wait">
-        {view === 'home' ? (
-          <HomeView 
-            key="home" 
-            onChapterClick={handleChapterClick} 
-            bookmarks={bookmarks}
-          />
+        {isLoading ? (
+          <LoadingScreen key="loading" />
         ) : (
-          <ReadingView 
-            key="reading" 
-            chapter={selectedChapter!} 
-            onBack={goBack} 
-            onSaveBookmark={saveBookmark}
-            currentBookmark={bookmarks[selectedChapter!.id]}
-          />
+          <motion.div
+            key="content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+          >
+            <AnimatePresence mode="wait">
+              {view === 'home' ? (
+                <HomeView 
+                  key="home" 
+                  onChapterClick={handleChapterClick} 
+                  bookmarks={bookmarks}
+                />
+              ) : (
+                <ReadingView 
+                  key="reading" 
+                  chapter={selectedChapter!} 
+                  onBack={goBack} 
+                  onSaveBookmark={saveBookmark}
+                  currentBookmark={bookmarks[selectedChapter!.id]}
+                />
+              )}
+            </AnimatePresence>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -129,6 +149,85 @@ export default function App() {
   );
 }
 
+function LoadingScreen() {
+  const authorName = "By SAM C.";
+  
+  return (
+    <motion.div 
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 1 }}
+      className="fixed inset-0 z-[200] bg-bg flex flex-col items-center justify-center space-y-8"
+    >
+      <div className="relative">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="text-center"
+        >
+          <span className="text-accent font-mono text-xs tracking-[0.3em] uppercase mb-4 block">
+            Presentando
+          </span>
+          <h2 className="text-4xl md:text-6xl font-serif italic tracking-tight">
+            Una Historia Original
+          </h2>
+        </motion.div>
+      </div>
+
+      <div className="flex items-center justify-center">
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          className="flex"
+        >
+          {authorName.split("").map((char, index) => (
+            <motion.span
+              key={index}
+              variants={{
+                hidden: { opacity: 0, width: 0 },
+                visible: { 
+                  opacity: 1, 
+                  width: "auto",
+                  transition: { 
+                    delay: 1.5 + (index * 0.1),
+                    duration: 0.2
+                  } 
+                }
+              }}
+              className={cn(
+                "text-2xl md:text-4xl font-hand text-accent",
+                char === " " ? "mr-3" : ""
+              )}
+            >
+              {char}
+            </motion.span>
+          ))}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0] }}
+            transition={{ 
+              delay: 1.5,
+              duration: 0.8, 
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="w-1 h-8 md:h-10 bg-accent ml-1 self-end mb-1"
+          />
+        </motion.div>
+      </div>
+
+      {/* Decorative elements */}
+      <motion.div 
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ delay: 0.5, duration: 1.5, ease: "easeInOut" }}
+        className="w-24 h-[1px] bg-white/20"
+      />
+    </motion.div>
+  );
+}
+
 function HomeView({ 
   onChapterClick, 
   bookmarks 
@@ -173,7 +272,13 @@ function HomeView({
           <div className="space-y-2">
             <span className="text-accent font-mono text-xs tracking-widest uppercase">Novela Original</span>
             <h1 className="text-6xl md:text-8xl font-serif font-bold tracking-tighter leading-none">
-              El Acto
+              <ShinyText 
+                text="El Acto" 
+                speed={1.6} 
+                color="#ffffff" 
+                shineColor="#f27d26" 
+                spread={120}
+              />
             </h1>
           </div>
           
@@ -375,7 +480,13 @@ function ReadingView({
         <header className="space-y-4 text-center mb-24">
           <span className="text-accent font-mono text-xs tracking-widest uppercase">Capítulo {chapter.id}</span>
           <h1 className="text-5xl md:text-7xl font-serif font-bold tracking-tight">
-            {chapter.title}
+            <ShinyText 
+              text={chapter.title} 
+              speed={2} 
+              color="#ffffff" 
+              shineColor="#f27d26" 
+              spread={120}
+            />
           </h1>
           <div className="w-12 h-1 bg-accent mx-auto mt-8" />
         </header>
