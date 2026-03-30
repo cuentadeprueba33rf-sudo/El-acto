@@ -1,31 +1,44 @@
 {
   "entities": {
-    "access_code": {
-      "title": "Access Code",
-      "description": "A one-time use code for early access to the story.",
+    "chapter": {
+      "title": "Chapter",
+      "description": "A chapter of the story.",
       "type": "object",
       "properties": {
-        "code": {
+        "id": {
+          "type": "integer",
+          "description": "The chapter number."
+        },
+        "title": {
           "type": "string",
-          "description": "The unique alphanumeric code."
+          "description": "The chapter title."
         },
-        "isUsed": {
+        "content": {
+          "type": "string",
+          "description": "The full text content of the chapter."
+        },
+        "isLocked": {
           "type": "boolean",
-          "description": "Whether the code has already been redeemed."
+          "description": "Whether the chapter is currently locked."
         },
-        "usedAt": {
+        "createdAt": {
           "type": "string",
           "format": "date-time",
-          "description": "When the code was redeemed."
+          "description": "When the chapter was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the chapter was last updated."
         }
       },
-      "required": ["code", "isUsed"]
+      "required": ["id", "title", "content", "isLocked"]
     }
   },
   "firestore": {
-    "/access_codes/{codeId}": {
-      "schema": "access_code",
-      "description": "Collection of codes for early access."
+    "/chapters/{chapterId}": {
+      "schema": "chapter",
+      "description": "Collection of story chapters."
     }
   }
 }

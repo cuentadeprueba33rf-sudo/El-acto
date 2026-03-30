@@ -13,26 +13,85 @@ import {
   Bookmark,
   BookmarkCheck,
   X,
-  Key,
-  Loader2
+  Loader2,
+  Settings,
+  Plus,
+  Trash2,
+  Edit3,
+  Save,
+  Unlock,
+  LogOut,
+  ShieldCheck,
+  RotateCcw
 } from 'lucide-react';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from './firebase';
-import { CHAPTERS, type Chapter } from './constants';
+import { 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  serverTimestamp, 
+  collection, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  setDoc, 
+  deleteDoc,
+  addDoc
+} from 'firebase/firestore';
+import { 
+  onAuthStateChanged, 
+  signInWithPopup, 
+  signOut, 
+  User 
+} from 'firebase/auth';
+import { db, auth, googleProvider } from './firebase';
+import { CHAPTERS as INITIAL_CHAPTERS, type Chapter } from './constants';
 import { cn } from './lib/utils';
 import ShinyText from './components/ShinyText';
 
 export default function App() {
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
-  const [view, setView] = useState<'home' | 'reading'>('home');
+  const [view, setView] = useState<'home' | 'reading' | 'admin'>('home');
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [bookmarks, setBookmarks] = useState<Record<number, number>>({});
   const [showLockedModal, setShowLockedModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isBlurred, setIsBlurred] = useState(false);
   const [showSecurityWarning, setShowSecurityWarning] = useState(false);
+  const [adminClickCount, setAdminClickCount] = useState(0);
+
+  const ADMIN_EMAIL = "samuelcasseresbx@gmail.com";
 
   useEffect(() => {
+    // Auth Listener
+    const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setIsAdmin(u?.email === ADMIN_EMAIL);
+    });
+
+    // Chapters Listener
+    const q = query(collection(db, 'chapters'), orderBy('id', 'asc'));
+    const unsubscribeChapters = onSnapshot(q, (snapshot) => {
+      const fetchedChapters = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        docId: doc.id
+      })) as (Chapter & { docId: string })[];
+      
+      if (fetchedChapters.length === 0 && isAdmin) {
+        // Initial migration if empty (only if admin is logged in)
+        INITIAL_CHAPTERS.forEach(async (c) => {
+          await setDoc(doc(db, 'chapters', `chapter-${c.id}`), {
+            ...c,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        });
+      } else {
+        setChapters(fetchedChapters);
+      }
+    });
+
     // Prevent right-click and long-press
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
@@ -61,14 +120,6 @@ export default function App() {
     window.addEventListener('blur', handleBlur);
     window.addEventListener('focus', handleFocus);
 
-    // Check authorization
-    const access = localStorage.getItem('el-acto-access');
-    if (access === 'granted') {
-      setIsAuthorized(true);
-    } else {
-      setIsAuthorized(false);
-    }
-
     // Simulate initial loading
     const timer = setTimeout(() => setIsLoading(false), 3500);
     
@@ -82,6 +133,8 @@ export default function App() {
     }
 
     return () => {
+      unsubscribeAuth();
+      unsubscribeChapters();
       clearTimeout(timer);
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('copy', handleCopy);
@@ -92,7 +145,7 @@ export default function App() {
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [isAdmin]);
 
   const saveBookmark = useCallback((chapterId: number, scrollY: number) => {
     setBookmarks(prev => {
@@ -122,6 +175,29 @@ export default function App() {
     setSelectedChapter(null);
   };
 
+  const handleAdminClick = () => {
+    if (isAdmin) {
+      setView('admin');
+      setAdminClickCount(0);
+      return;
+    }
+    
+    setAdminClickCount(prev => {
+      const next = prev + 1;
+      if (next >= 5) {
+        signInWithPopup(auth, googleProvider)
+          .then((result) => {
+            if (result.user.email === ADMIN_EMAIL) {
+              setView('admin');
+            }
+          })
+          .catch(console.error);
+        return 0;
+      }
+      return next;
+    });
+  };
+
   return (
     <div className={cn(
       "min-h-screen bg-bg text-ink selection:bg-accent selection:text-bg transition-all duration-500",
@@ -129,9 +205,7 @@ export default function App() {
     )}>
       <AnimatePresence mode="wait">
         {isLoading ? (
-          <LoadingScreen key="loading" />
-        ) : !isAuthorized ? (
-          <AccessGate key="access" onGrant={() => setIsAuthorized(true)} />
+          <LoadingScreen key="loading" onAuthorClick={handleAdminClick} />
         ) : (
           <motion.div
             key="content"
@@ -145,14 +219,23 @@ export default function App() {
                   key="home" 
                   onChapterClick={handleChapterClick} 
                   bookmarks={bookmarks}
+                  chapters={chapters}
+                  onAuthorClick={handleAdminClick}
+                  isAdmin={isAdmin}
                 />
-              ) : (
+              ) : view === 'reading' ? (
                 <ReadingView 
                   key="reading" 
                   chapter={selectedChapter!} 
                   onBack={goBack} 
                   onSaveBookmark={saveBookmark}
                   currentBookmark={bookmarks[selectedChapter!.id]}
+                />
+              ) : (
+                <AdminView 
+                  key="admin" 
+                  chapters={chapters} 
+                  onBack={() => setView('home')} 
                 />
               )}
             </AnimatePresence>
@@ -224,138 +307,7 @@ export default function App() {
   );
 }
 
-function AccessGate({ onGrant, key }: { onGrant: () => void; key?: string }) {
-  const [code, setCode] = useState('');
-  const [status, setStatus] = useState<'idle' | 'checking' | 'error' | 'success'>('idle');
-  const [errorMsg, setErrorMsg] = useState('');
-
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim()) return;
-
-    setStatus('checking');
-    setErrorMsg('');
-
-    try {
-      const codeRef = doc(db, 'access_codes', code.trim().toUpperCase());
-      const codeSnap = await getDoc(codeRef);
-
-      if (!codeSnap.exists()) {
-        setStatus('error');
-        setErrorMsg('Código inválido. Verifica e intenta de nuevo.');
-        return;
-      }
-
-      const data = codeSnap.data();
-      if (data.isUsed) {
-        setStatus('error');
-        setErrorMsg('Este código ya ha sido utilizado.');
-        return;
-      }
-
-      // Mark as used
-      await updateDoc(codeRef, {
-        isUsed: true,
-        usedAt: serverTimestamp()
-      });
-
-      setStatus('success');
-      localStorage.setItem('el-acto-access', 'granted');
-      setTimeout(onGrant, 1500);
-    } catch (error) {
-      console.error("Verification error:", error);
-      setStatus('error');
-      setErrorMsg('Error de conexión. Intenta más tarde.');
-    }
-  };
-
-  return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[150] bg-bg flex items-center justify-center p-6"
-    >
-      <div className="w-full max-w-md space-y-12 text-center">
-        <div className="space-y-4">
-          <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="w-20 h-20 bg-accent/10 rounded-3xl flex items-center justify-center mx-auto text-accent"
-          >
-            <Key size={32} />
-          </motion.div>
-          <h1 className="text-4xl font-serif font-bold tracking-tight">Acceso Anticipado</h1>
-          <p className="text-muted leading-relaxed">
-            Ingresa tu código exclusivo para desbloquear la lectura de <span className="text-white italic">"El Acto"</span>.
-          </p>
-        </div>
-
-        <form onSubmit={handleVerify} className="space-y-6">
-          <div className="relative group">
-            <input 
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="INGRESA TU CÓDIGO"
-              disabled={status === 'checking' || status === 'success'}
-              className={cn(
-                "w-full bg-white/5 border-2 border-white/10 rounded-2xl px-6 py-5 text-center font-mono text-xl tracking-[0.3em] uppercase transition-all focus:outline-none focus:border-accent/50",
-                status === 'error' && "border-red-500/50 text-red-400",
-                status === 'success' && "border-green-500/50 text-green-400"
-              )}
-            />
-            {status === 'checking' && (
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 text-accent animate-spin">
-                <Loader2 size={24} />
-              </div>
-            )}
-          </div>
-
-          <AnimatePresence mode="wait">
-            {status === 'error' && (
-              <motion.p 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="text-red-400 text-sm font-medium"
-              >
-                {errorMsg}
-              </motion.p>
-            )}
-            {status === 'success' && (
-              <motion.p 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-green-400 text-sm font-medium flex items-center justify-center gap-2"
-              >
-                <BookmarkCheck size={16} />
-                Acceso concedido. Bienvenido.
-              </motion.p>
-            )}
-          </AnimatePresence>
-
-          <button 
-            type="submit"
-            disabled={status === 'checking' || status === 'success' || !code.trim()}
-            className="w-full py-5 bg-ink text-bg font-bold rounded-2xl hover:bg-accent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 group"
-          >
-            {status === 'checking' ? 'Verificando...' : 'Desbloquear Historia'}
-            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-          </button>
-        </form>
-
-        <div className="pt-12 border-t border-white/5">
-          <p className="text-xs text-muted/50 uppercase tracking-widest">
-            ¿No tienes un código? Contacta al autor.
-          </p>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-function LoadingScreen() {
+function LoadingScreen(_props: { key?: string | number; onAuthorClick?: () => void }) {
   const authorName = "By SAM C.";
   
   return (
@@ -385,7 +337,8 @@ function LoadingScreen() {
         <motion.div
           initial="hidden"
           animate="visible"
-          className="flex"
+          className="flex cursor-pointer"
+          onClick={_props.onAuthorClick}
         >
           {authorName.split("").map((char, index) => (
             <motion.span
@@ -436,14 +389,20 @@ function LoadingScreen() {
 
 function HomeView({ 
   onChapterClick, 
-  bookmarks 
+  bookmarks,
+  chapters,
+  onAuthorClick,
+  isAdmin
 }: { 
   onChapterClick: (c: Chapter) => void; 
   bookmarks: Record<number, number>;
-  key?: string 
+  chapters: Chapter[];
+  onAuthorClick: () => void;
+  isAdmin: boolean;
+  key?: string | number;
 }) {
   const lastBookmarkedId = Object.keys(bookmarks).map(Number).sort((a, b) => b - a)[0];
-  const lastChapter = CHAPTERS.find(c => c.id === lastBookmarkedId);
+  const lastChapter = chapters.find(c => c.id === lastBookmarkedId);
 
   return (
     <motion.div 
@@ -495,7 +454,7 @@ function HomeView({
           <div className="flex items-center gap-6 text-sm font-mono text-muted">
             <div className="flex items-center gap-2">
               <BookOpen size={16} className="text-accent" />
-              <span>27 Capítulos</span>
+              <span>{chapters.length} Capítulos</span>
             </div>
             <div className="flex items-center gap-2">
               <Heart size={16} className="text-accent" />
@@ -505,7 +464,7 @@ function HomeView({
 
           <div className="pt-6 flex flex-wrap gap-4">
             <button 
-              onClick={() => onChapterClick(CHAPTERS[0])}
+              onClick={() => onChapterClick(chapters[0])}
               className="px-8 py-4 bg-ink text-bg font-bold rounded-full hover:bg-accent transition-colors duration-300 flex items-center gap-2 group"
             >
               {lastChapter ? 'Reiniciar Lectura' : 'Empezar a Leer'}
@@ -551,11 +510,22 @@ function HomeView({
       <div className="space-y-4">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-serif italic">Índice de Capítulos</h2>
-          <List size={20} className="text-muted" />
+          <div className="flex items-center gap-4">
+            {isAdmin && (
+              <button 
+                onClick={() => setView('admin')}
+                className="p-2 glass rounded-lg text-accent hover:bg-accent/10 transition-colors"
+                title="Panel de Control"
+              >
+                <Settings size={20} />
+              </button>
+            )}
+            <List size={20} className="text-muted" />
+          </div>
         </div>
         
         <div className="grid grid-cols-1 gap-3">
-          {CHAPTERS.map((chapter, index) => (
+          {chapters.map((chapter, index) => (
             <motion.div
               key={chapter.id}
               initial={{ opacity: 0, y: 10 }}
@@ -595,13 +565,288 @@ function HomeView({
           <button className="hover:text-accent transition-colors"><Share2 size={18} /></button>
           <button className="hover:text-accent transition-colors"><Heart size={18} /></button>
         </div>
-        <p className="text-xs font-mono text-muted/50 tracking-widest uppercase">
+        <p 
+          className="text-xs font-mono text-muted/50 tracking-widest uppercase cursor-pointer"
+          onClick={onAuthorClick}
+        >
           © 2026 SAM C. Todos los derechos reservados.
         </p>
         <p className="text-[10px] text-muted/30 italic">
           Esta es una obra de ficción. Cualquier parecido con la realidad es pura coincidencia.
         </p>
       </footer>
+    </motion.div>
+  );
+}
+
+function AdminView({ 
+  chapters, 
+  onBack 
+}: { 
+  chapters: Chapter[]; 
+  onBack: () => void;
+  key?: string | number;
+}) {
+  const [editingChapter, setEditingChapter] = useState<(Chapter & { docId: string }) | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [formData, setFormData] = useState({ id: 0, title: '', content: '', isLocked: true });
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleEdit = (chapter: Chapter & { docId: string }) => {
+    setEditingChapter(chapter);
+    setFormData({ id: chapter.id, title: chapter.title, content: chapter.content || '', isLocked: chapter.isLocked });
+    setIsAdding(false);
+  };
+
+  const handleAddNew = () => {
+    const nextId = chapters.length > 0 ? Math.max(...chapters.map(c => c.id)) + 1 : 1;
+    setFormData({ id: nextId, title: '', content: '', isLocked: true });
+    setIsAdding(true);
+    setEditingChapter(null);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      if (editingChapter) {
+        await updateDoc(doc(db, 'chapters', editingChapter.docId), {
+          ...formData,
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        await setDoc(doc(db, 'chapters', `chapter-${formData.id}`), {
+          ...formData,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      }
+      setEditingChapter(null);
+      setIsAdding(false);
+    } catch (error) {
+      console.error("Error saving chapter:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (docId: string) => {
+    if (confirm("¿Estás seguro de eliminar este capítulo?")) {
+      await deleteDoc(doc(db, 'chapters', docId));
+    }
+  };
+
+  const toggleLock = async (chapter: Chapter & { docId: string }) => {
+    await updateDoc(doc(db, 'chapters', chapter.docId), {
+      isLocked: !chapter.isLocked,
+      updatedAt: serverTimestamp()
+    });
+  };
+
+  const handleLogout = () => {
+    signOut(auth).then(onBack);
+  };
+
+  const handleReset = async () => {
+    if (confirm("¿Estás seguro de reiniciar todos los capítulos? Esto borrará los cambios actuales y restaurará los 27 capítulos bloqueados.")) {
+      setIsSaving(true);
+      try {
+        // Delete all existing
+        for (const c of chapters) {
+          await deleteDoc(doc(db, 'chapters', (c as any).docId));
+        }
+        // Re-upload from constants
+        for (const c of INITIAL_CHAPTERS) {
+          await setDoc(doc(db, 'chapters', `chapter-${c.id}`), {
+            ...c,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        }
+        alert("Capítulos reiniciados con éxito.");
+      } catch (error) {
+        console.error("Error resetting chapters:", error);
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="max-w-6xl mx-auto px-6 py-12"
+    >
+      <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center gap-4">
+          <button onClick={onBack} className="p-2 glass rounded-full hover:bg-white/10">
+            <ChevronLeft size={24} />
+          </button>
+          <h1 className="text-3xl font-serif font-bold flex items-center gap-3">
+            <ShieldCheck className="text-accent" />
+            Panel de Control
+          </h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={handleReset}
+            disabled={isSaving}
+            className="px-6 py-2 glass text-muted font-medium rounded-full flex items-center gap-2 hover:bg-white/10 transition-colors disabled:opacity-50"
+            title="Reiniciar a los 27 capítulos originales"
+          >
+            <RotateCcw size={18} className={isSaving ? "animate-spin" : ""} /> Reiniciar
+          </button>
+          <button 
+            onClick={handleAddNew}
+            className="px-6 py-2 bg-accent text-bg font-bold rounded-full flex items-center gap-2 hover:bg-accent/80 transition-colors"
+          >
+            <Plus size={18} /> Nuevo Capítulo
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="p-2 glass rounded-full text-red-400 hover:bg-red-400/10 transition-colors"
+          >
+            <LogOut size={20} />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* List */}
+        <div className="lg:col-span-1 space-y-4 h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+          {chapters.map(chapter => (
+            <div 
+              key={chapter.id}
+              className={cn(
+                "p-4 glass rounded-xl border transition-all cursor-pointer group",
+                editingChapter?.id === chapter.id ? "border-accent bg-accent/5" : "border-white/5 hover:border-white/20"
+              )}
+              onClick={() => handleEdit(chapter as Chapter & { docId: string })}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-muted">#{chapter.id}</span>
+                  <span className="font-medium text-sm truncate max-w-[150px]">{chapter.title}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); toggleLock(chapter as Chapter & { docId: string }); }}
+                    className={cn("p-1.5 rounded-md transition-colors", chapter.isLocked ? "text-muted" : "text-accent bg-accent/10")}
+                  >
+                    {chapter.isLocked ? <Lock size={14} /> : <Unlock size={14} />}
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleDelete((chapter as any).docId); }}
+                    className="p-1.5 text-muted hover:text-red-400 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Editor */}
+        <div className="lg:col-span-2">
+          {(editingChapter || isAdding) ? (
+            <motion.form 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              onSubmit={handleSave}
+              className="glass p-8 rounded-3xl border-white/10 space-y-6"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold flex items-center gap-2">
+                  {isAdding ? <Plus size={20} /> : <Edit3 size={20} />}
+                  {isAdding ? 'Crear Nuevo Capítulo' : `Editando Capítulo ${formData.id}`}
+                </h2>
+                <button 
+                  type="button" 
+                  onClick={() => { setEditingChapter(null); setIsAdding(false); }}
+                  className="text-muted hover:text-white"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-4 gap-4">
+                <div className="col-span-1 space-y-2">
+                  <label className="text-xs font-mono text-muted uppercase">ID</label>
+                  <input 
+                    type="number" 
+                    value={formData.id}
+                    onChange={e => setFormData({...formData, id: parseInt(e.target.value)})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-accent outline-none"
+                    required
+                  />
+                </div>
+                <div className="col-span-3 space-y-2">
+                  <label className="text-xs font-mono text-muted uppercase">Título</label>
+                  <input 
+                    type="text" 
+                    value={formData.title}
+                    onChange={e => setFormData({...formData, title: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-accent outline-none"
+                    placeholder="Título del capítulo..."
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-muted uppercase">Contenido</label>
+                <textarea 
+                  value={formData.content}
+                  onChange={e => setFormData({...formData, content: e.target.value})}
+                  className="w-full h-64 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-accent outline-none resize-none font-serif leading-relaxed"
+                  placeholder="Escribe la historia aquí..."
+                  required
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div 
+                    onClick={() => setFormData({...formData, isLocked: !formData.isLocked})}
+                    className={cn(
+                      "w-12 h-6 rounded-full transition-colors relative",
+                      formData.isLocked ? "bg-white/10" : "bg-accent"
+                    )}
+                  >
+                    <div className={cn(
+                      "absolute top-1 w-4 h-4 bg-white rounded-full transition-all",
+                      formData.isLocked ? "left-1" : "left-7"
+                    )} />
+                  </div>
+                  <span className="text-sm font-medium">
+                    {formData.isLocked ? 'Capítulo Bloqueado' : 'Capítulo Público'}
+                  </span>
+                </label>
+
+                <button 
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-8 py-3 bg-accent text-bg font-bold rounded-xl flex items-center gap-2 hover:bg-accent/80 transition-all disabled:opacity-50"
+                >
+                  {isSaving ? <Loader2 className="animate-spin" /> : <Save size={18} />}
+                  {isAdding ? 'Publicar Capítulo' : 'Guardar Cambios'}
+                </button>
+              </div>
+            </motion.form>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-center p-12 glass rounded-3xl border-dashed border-white/10">
+              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-muted mb-4">
+                <Edit3 size={32} />
+              </div>
+              <h3 className="text-xl font-medium text-muted">Selecciona un capítulo para editar</h3>
+              <p className="text-sm text-muted/50 mt-2">O crea uno nuevo usando el botón superior</p>
+            </div>
+          )}
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -616,7 +861,7 @@ function ReadingView({
   onBack: () => void; 
   onSaveBookmark: (id: number, pos: number) => void;
   currentBookmark?: number;
-  key?: string 
+  key?: string | number;
 }) {
   const [progress, setProgress] = useState(0);
   const [showBookmarkToast, setShowBookmarkToast] = useState(false);

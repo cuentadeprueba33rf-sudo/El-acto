@@ -6,7 +6,7 @@ export interface Chapter {
 }
 
 export const CHAPTERS: Chapter[] = [
-  { id: 1, title: "La primera cuerda", isLocked: false, content: `Mi vida es una mierda. No lo digo por drama, lo digo porque me despierto cada mañana sintiendo que el techo de mi cuarto se va a desplomar sobre mí y, sinceramente, a veces espero que lo haga. Todo pesa. El uniforme me pesa, caminar me pesa, respirar en este colegio donde todos parecen tener un lugar menos yo, me pesa. Siempre voy con la cabeza gacha, contando las baldosas del piso para no tener que cruzarme con la mirada de nadie, para que no vean lo roto que estoy por dentro.
+  { id: 1, title: "La primera cuerda", isLocked: true, content: `Mi vida es una mierda. No lo digo por drama, lo digo porque me despierto cada mañana sintiendo que el techo de mi cuarto se va a desplomar sobre mí y, sinceramente, a veces espero que lo haga. Todo pesa. El uniforme me pesa, caminar me pesa, respirar en este colegio donde todos parecen tener un lugar menos yo, me pesa. Siempre voy con la cabeza gacha, contando las baldosas del piso para no tener que cruzarme con la mirada de nadie, para que no vean lo roto que estoy por dentro.
 
 Pero ese día... ese maldito día, algo se rompió de forma diferente.
 

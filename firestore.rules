@@ -12,6 +12,16 @@ service cloud.firestore {
     //   - isUsed: bool (required) - Whether it's been used
     //   - usedAt: timestamp (optional) - When it was used
     //
+    // Collection: chapters
+    // Document ID: {chapterId}
+    // Fields:
+    //   - id: number (required) - Chapter number
+    //   - title: string (required) - Chapter title
+    //   - content: string (required) - Chapter content
+    //   - isLocked: bool (required) - Whether it's locked
+    //   - createdAt: timestamp (optional)
+    //   - updatedAt: timestamp (optional)
+    //
     // ===============================================================
 
     // Helper functions
@@ -24,19 +34,12 @@ service cloud.firestore {
         (request.auth.token.email == "samuelcasseresbx@gmail.com" && request.auth.token.email_verified == true);
     }
 
-    match /access_codes/{codeId} {
-      // Anyone can read a code to check if it's valid (but we should probably restrict this to specific fields)
-      // For simplicity, we allow reading if they know the codeId (which is the code itself)
-      allow get: if true;
+    match /chapters/{chapterId} {
+      // Public can read all chapters (to show the list and content)
+      allow read, list: if true;
       
-      // Only allow updating if the code is NOT used and they are marking it as USED
-      // This is the "one-time use" logic
-      allow update: if resource.data.isUsed == false 
-                    && request.resource.data.isUsed == true
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isUsed', 'usedAt']);
-      
-      // Only admin can create or delete codes
-      allow create, delete: if isAdmin();
+      // Only admin can create, update, or delete chapters
+      allow create, update, delete: if isAdmin();
     }
   }
 }
