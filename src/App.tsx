@@ -384,6 +384,20 @@ function HomeView({
           ))}
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="mt-24 pt-12 border-t border-white/5 text-center space-y-4">
+        <div className="flex justify-center gap-6 text-muted">
+          <button className="hover:text-accent transition-colors"><Share2 size={18} /></button>
+          <button className="hover:text-accent transition-colors"><Heart size={18} /></button>
+        </div>
+        <p className="text-xs font-mono text-muted/50 tracking-widest uppercase">
+          © 2026 SAM C. Todos los derechos reservados.
+        </p>
+        <p className="text-[10px] text-muted/30 italic">
+          Esta es una obra de ficción. Cualquier parecido con la realidad es pura coincidencia.
+        </p>
+      </footer>
     </motion.div>
   );
 }
@@ -521,6 +535,12 @@ function ReadingView({
             >
               Volver al Índice
             </button>
+          </div>
+
+          <div className="pt-12 space-y-2">
+            <p className="text-xs font-mono text-muted/50 tracking-widest uppercase">
+              © 2026 SAM C. Todos los derechos reservados.
+            </p>
           </div>
         </footer>
       </article>
