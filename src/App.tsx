@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BookOpen, 
@@ -41,11 +41,13 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  const saveBookmark = (chapterId: number, scrollY: number) => {
-    const newBookmarks = { ...bookmarks, [chapterId]: scrollY };
-    setBookmarks(newBookmarks);
-    localStorage.setItem('el-acto-bookmarks', JSON.stringify(newBookmarks));
-  };
+  const saveBookmark = useCallback((chapterId: number, scrollY: number) => {
+    setBookmarks(prev => {
+      const newBookmarks = { ...prev, [chapterId]: scrollY };
+      localStorage.setItem('el-acto-bookmarks', JSON.stringify(newBookmarks));
+      return newBookmarks;
+    });
+  }, []);
 
   const handleChapterClick = (chapter: Chapter) => {
     if (!chapter.isLocked) {
@@ -415,8 +417,18 @@ function ReadingView({
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    
+    // Auto-bookmark on unmount (when leaving the chapter)
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      onSaveBookmark(chapter.id, window.scrollY);
+    };
+  }, [chapter.id, onSaveBookmark]);
+
+  const handleBack = () => {
+    onSaveBookmark(chapter.id, window.scrollY);
+    onBack();
+  };
 
   return (
     <motion.div 
@@ -436,7 +448,7 @@ function ReadingView({
       {/* Navigation */}
       <nav className="fixed top-0 left-0 w-full p-6 flex justify-between items-center z-40 pointer-events-none">
         <button 
-          onClick={onBack}
+          onClick={handleBack}
           className="p-3 glass rounded-full hover:bg-white/10 transition-colors pointer-events-auto group"
         >
           <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
@@ -504,7 +516,7 @@ function ReadingView({
           
           <div className="flex flex-col items-center gap-4">
             <button 
-              onClick={onBack}
+              onClick={handleBack}
               className="px-12 py-4 glass rounded-full hover:bg-white/10 transition-colors font-bold"
             >
               Volver al Índice
