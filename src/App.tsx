@@ -28,9 +28,17 @@ export default function App() {
   const [showSecurityWarning, setShowSecurityWarning] = useState(false);
 
   useEffect(() => {
-    // Prevent right-click
+    // Prevent right-click and long-press
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
+
+    // Prevent copy, cut, paste, and drag
+    const handleCopy = (e: ClipboardEvent) => e.preventDefault();
+    const handleDrag = (e: DragEvent) => e.preventDefault();
+    document.addEventListener('copy', handleCopy);
+    document.addEventListener('cut', handleCopy);
+    document.addEventListener('paste', handleCopy);
+    document.addEventListener('dragstart', handleDrag);
 
     // Detect PrintScreen and other keys
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -63,6 +71,10 @@ export default function App() {
     return () => {
       clearTimeout(timer);
       document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('copy', handleCopy);
+      document.removeEventListener('cut', handleCopy);
+      document.removeEventListener('paste', handleCopy);
+      document.removeEventListener('dragstart', handleDrag);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('focus', handleFocus);
