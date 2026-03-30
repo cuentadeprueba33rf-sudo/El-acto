@@ -60,6 +60,8 @@ export default function App() {
   const [isBlurred, setIsBlurred] = useState(false);
   const [showSecurityWarning, setShowSecurityWarning] = useState(false);
   const [adminClickCount, setAdminClickCount] = useState(0);
+  const [newChapterNotify, setNewChapterNotify] = useState<Chapter | null>(null);
+  const [prevChapters, setPrevChapters] = useState<Chapter[]>([]);
 
   const ADMIN_EMAIL = "samuelcasseresbx@gmail.com";
 
@@ -88,7 +90,30 @@ export default function App() {
           });
         });
       } else {
+        // Check for newly unlocked chapters
+        if (prevChapters.length > 0 && !isAdmin) {
+          const newlyUnlocked = fetchedChapters.find(c => {
+            const prev = prevChapters.find(p => p.id === c.id);
+            return prev && prev.isLocked && !c.isLocked;
+          });
+          
+          if (newlyUnlocked) {
+            setNewChapterNotify(newlyUnlocked);
+          }
+        }
+
+        // Check for new chapters on initial load for returning users
+        if (prevChapters.length === 0 && fetchedChapters.length > 0 && !isAdmin) {
+          const lastSeenId = Number(localStorage.getItem('el-acto-last-seen-id') || '0');
+          const latestUnlocked = [...fetchedChapters].reverse().find(c => !c.isLocked);
+          
+          if (latestUnlocked && latestUnlocked.id > lastSeenId) {
+            setNewChapterNotify(latestUnlocked);
+          }
+        }
+
         setChapters(fetchedChapters);
+        setPrevChapters(fetchedChapters);
       }
     });
 
@@ -160,6 +185,12 @@ export default function App() {
       setSelectedChapter(chapter);
       setView('reading');
       
+      // Update last seen ID
+      localStorage.setItem('el-acto-last-seen-id', String(chapter.id));
+      if (newChapterNotify?.id === chapter.id) {
+        setNewChapterNotify(null);
+      }
+      
       // Check if there's a bookmark for this chapter
       const savedPos = bookmarks[chapter.id];
       setTimeout(() => {
@@ -213,6 +244,42 @@ export default function App() {
             animate={{ opacity: 1 }}
             transition={{ duration: 1 }}
           >
+            {/* Real-time Notification */}
+            <AnimatePresence>
+              {newChapterNotify && (
+                <motion.div
+                  initial={{ y: -100, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -100, opacity: 0 }}
+                  className="fixed top-8 left-1/2 -translate-x-1/2 z-[400] w-[90%] max-w-sm"
+                >
+                  <div className="glass p-4 rounded-2xl border-accent/50 shadow-2xl flex items-center gap-4">
+                    <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center text-accent shrink-0">
+                      <BookOpen size={24} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-mono text-accent uppercase tracking-widest mb-1">¡Nuevo Capítulo!</p>
+                      <h4 className="text-sm font-bold truncate">{newChapterNotify.title}</h4>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <button 
+                        onClick={() => handleChapterClick(newChapterNotify)}
+                        className="px-3 py-1.5 bg-accent text-bg text-[10px] font-bold rounded-lg hover:bg-accent/80 transition-colors"
+                      >
+                        Leer
+                      </button>
+                      <button 
+                        onClick={() => setNewChapterNotify(null)}
+                        className="px-3 py-1.5 bg-white/5 text-muted text-[10px] font-bold rounded-lg hover:bg-white/10 transition-colors"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <AnimatePresence mode="wait">
               {view === 'home' ? (
                 <HomeView 
@@ -513,7 +580,7 @@ function HomeView({
           <div className="flex items-center gap-4">
             {isAdmin && (
               <button 
-                onClick={() => setView('admin')}
+                onClick={onAuthorClick}
                 className="p-2 glass rounded-lg text-accent hover:bg-accent/10 transition-colors"
                 title="Panel de Control"
               >
@@ -605,8 +672,12 @@ function AdminView({
     setEditingChapter(null);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [isPreview, setIsPreview] = useState(false);
+
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (isSaving) return;
+    
     setIsSaving(true);
     try {
       if (editingChapter) {
@@ -621,12 +692,27 @@ function AdminView({
           updatedAt: serverTimestamp()
         });
       }
-      setEditingChapter(null);
-      setIsAdding(false);
+      // Keep editing the same chapter but update the reference
+      if (isAdding) {
+        setIsAdding(false);
+      }
     } catch (error) {
       console.error("Error saving chapter:", error);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(formData.content);
+  };
+
+  const wordCount = formData.content.trim() ? formData.content.trim().split(/\s+/).length : 0;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      handleSave();
     }
   };
 
@@ -797,14 +883,49 @@ function AdminView({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-mono text-muted uppercase">Contenido</label>
-                <textarea 
-                  value={formData.content}
-                  onChange={e => setFormData({...formData, content: e.target.value})}
-                  className="w-full h-64 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-accent outline-none resize-none font-serif leading-relaxed"
-                  placeholder="Escribe la historia aquí..."
-                  required
-                />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <label className="text-xs font-mono text-muted uppercase">Contenido de la Historia</label>
+                    <button 
+                      type="button"
+                      onClick={() => setIsPreview(!isPreview)}
+                      className={cn(
+                        "px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest transition-colors",
+                        isPreview ? "bg-accent text-bg" : "bg-white/5 text-muted hover:bg-white/10"
+                      )}
+                    >
+                      {isPreview ? 'Editar' : 'Vista Previa'}
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={handleCopy}
+                      className="px-3 py-1 bg-white/5 text-muted hover:bg-white/10 rounded-full text-[10px] font-mono uppercase tracking-widest transition-colors"
+                    >
+                      Copiar
+                    </button>
+                  </div>
+                  <span className="text-xs font-mono text-muted/50">{wordCount} palabras</span>
+                </div>
+                
+                {isPreview ? (
+                  <div className="w-full min-h-[500px] bg-white/5 border border-white/10 rounded-2xl px-8 py-8 overflow-y-auto font-serif text-lg leading-relaxed text-white/80">
+                    {formData.content.split(/\n\s*\n/).map((para, i) => (
+                      <p key={i} className="mb-6 first-letter:text-3xl first-letter:text-accent first-letter:mr-1">
+                        {para}
+                      </p>
+                    ))}
+                    {formData.content === '' && <p className="text-muted italic">Sin contenido para mostrar...</p>}
+                  </div>
+                ) : (
+                  <textarea 
+                    value={formData.content}
+                    onChange={e => setFormData({...formData, content: e.target.value})}
+                    onKeyDown={handleKeyDown}
+                    className="w-full min-h-[500px] bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-accent outline-none resize-y font-serif text-lg leading-relaxed custom-scrollbar"
+                    placeholder="Escribe el alma de este capítulo aquí... (Usa Ctrl+S para guardar rápido)"
+                    required
+                  />
+                )}
               </div>
 
               <div className="flex items-center justify-between">
