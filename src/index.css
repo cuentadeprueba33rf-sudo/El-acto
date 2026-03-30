@@ -17,6 +17,16 @@ body {
   background-color: var(--color-bg);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+@media print {
+  body {
+    display: none !important;
+  }
 }
 
 .glass {

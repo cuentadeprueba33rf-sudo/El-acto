@@ -24,8 +24,30 @@ export default function App() {
   const [bookmarks, setBookmarks] = useState<Record<number, number>>({});
   const [showLockedModal, setShowLockedModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBlurred, setIsBlurred] = useState(false);
+  const [showSecurityWarning, setShowSecurityWarning] = useState(false);
 
   useEffect(() => {
+    // Prevent right-click
+    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    // Detect PrintScreen and other keys
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'PrintScreen' || (e.ctrlKey && e.key === 'p')) {
+        e.preventDefault();
+        setShowSecurityWarning(true);
+        setTimeout(() => setShowSecurityWarning(false), 3000);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Blur on focus loss
+    const handleBlur = () => setIsBlurred(true);
+    const handleFocus = () => setIsBlurred(false);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+
     // Simulate initial loading
     const timer = setTimeout(() => setIsLoading(false), 3500);
     
@@ -38,7 +60,13 @@ export default function App() {
       }
     }
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const saveBookmark = useCallback((chapterId: number, scrollY: number) => {
@@ -70,7 +98,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-bg text-ink selection:bg-accent selection:text-bg">
+    <div className={cn(
+      "min-h-screen bg-bg text-ink selection:bg-accent selection:text-bg transition-all duration-500",
+      isBlurred && "blur-xl grayscale"
+    )}>
       <AnimatePresence mode="wait">
         {isLoading ? (
           <LoadingScreen key="loading" />
@@ -98,6 +129,21 @@ export default function App() {
                 />
               )}
             </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Security Warning Toast */}
+      <AnimatePresence>
+        {showSecurityWarning && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-12 left-1/2 -translate-x-1/2 z-[300] px-8 py-4 bg-red-500/90 text-white font-bold rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-3"
+          >
+            <Lock size={20} />
+            <span>Capturas de pantalla y copias no permitidas</span>
           </motion.div>
         )}
       </AnimatePresence>
