@@ -62,6 +62,9 @@ export default function App() {
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [newChapterNotify, setNewChapterNotify] = useState<Chapter | null>(null);
   const [prevChapters, setPrevChapters] = useState<Chapter[]>([]);
+  const [notifyProgress, setNotifyProgress] = useState(100);
+
+  const NOTIFY_DURATION = 8000; // 8 seconds
 
   const ADMIN_EMAIL = "samuelcasseresbx@gmail.com";
 
@@ -206,6 +209,31 @@ export default function App() {
     setSelectedChapter(null);
   };
 
+  const playNotificationSound = () => {
+    const audio = new Audio('https://cdn.pixabay.com/audio/2022/03/15/audio_7833388c4b.mp3');
+    audio.volume = 0.4;
+    audio.play().catch(e => console.log("Audio playback blocked until user interaction", e));
+  };
+
+  useEffect(() => {
+    if (newChapterNotify) {
+      playNotificationSound();
+      setNotifyProgress(100);
+      
+      const interval = setInterval(() => {
+        setNotifyProgress(prev => Math.max(0, prev - (100 / (NOTIFY_DURATION / 100))));
+      }, 100);
+
+      const timer = setTimeout(() => {
+        setNewChapterNotify(null);
+      }, NOTIFY_DURATION);
+
+      return () => {
+        clearTimeout(timer);
+        clearInterval(interval);
+      };
+    }
+  }, [newChapterNotify]);
   const handleAdminClick = () => {
     if (isAdmin) {
       setView('admin');
@@ -248,31 +276,63 @@ export default function App() {
             <AnimatePresence>
               {newChapterNotify && (
                 <motion.div
-                  initial={{ y: -100, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -100, opacity: 0 }}
-                  className="fixed top-8 left-1/2 -translate-x-1/2 z-[400] w-[90%] max-w-sm"
+                  initial={{ y: -120, opacity: 0, scale: 0.9 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  exit={{ y: -120, opacity: 0, scale: 0.9 }}
+                  className="fixed top-6 left-1/2 -translate-x-1/2 z-[400] w-[95%] max-w-md"
                 >
-                  <div className="glass p-4 rounded-2xl border-accent/50 shadow-2xl flex items-center gap-4">
-                    <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center text-accent shrink-0">
-                      <BookOpen size={24} />
+                  <div className="relative overflow-hidden bg-black/95 backdrop-blur-xl p-5 rounded-3xl border border-accent/40 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-5">
+                    {/* Progress Bar Background */}
+                    <div className="absolute bottom-0 left-0 w-full h-1 bg-white/5">
+                      <motion.div 
+                        className="h-full bg-accent"
+                        initial={{ width: "100%" }}
+                        animate={{ width: `${notifyProgress}%` }}
+                        transition={{ ease: "linear" }}
+                      />
                     </div>
+
+                    <motion.div 
+                      animate={{ 
+                        scale: [1, 1.1, 1],
+                        rotate: [0, 5, -5, 0]
+                      }}
+                      transition={{ 
+                        duration: 2, 
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="w-14 h-14 bg-accent/20 rounded-2xl flex items-center justify-center text-accent shrink-0 shadow-[0_0_20px_rgba(242,125,38,0.2)]"
+                    >
+                      <BookOpen size={28} />
+                    </motion.div>
+
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-mono text-accent uppercase tracking-widest mb-1">¡Nuevo Capítulo!</p>
-                      <h4 className="text-sm font-bold truncate">{newChapterNotify.title}</h4>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+                        </span>
+                        <p className="text-[10px] font-mono text-accent uppercase tracking-[0.2em] font-bold">Nueva Entrega</p>
+                      </div>
+                      <h4 className="text-lg font-serif font-bold truncate leading-tight">
+                        {newChapterNotify.title}
+                      </h4>
+                      <p className="text-xs text-muted truncate opacity-70">Capítulo {newChapterNotify.id} ya disponible</p>
                     </div>
-                    <div className="flex flex-col gap-1">
+
+                    <div className="flex flex-col gap-2">
                       <button 
                         onClick={() => handleChapterClick(newChapterNotify)}
-                        className="px-3 py-1.5 bg-accent text-bg text-[10px] font-bold rounded-lg hover:bg-accent/80 transition-colors"
+                        className="px-5 py-2 bg-accent text-bg text-xs font-bold rounded-xl hover:bg-accent/80 transition-all shadow-lg shadow-accent/20 active:scale-95"
                       >
                         Leer
                       </button>
                       <button 
                         onClick={() => setNewChapterNotify(null)}
-                        className="px-3 py-1.5 bg-white/5 text-muted text-[10px] font-bold rounded-lg hover:bg-white/10 transition-colors"
+                        className="px-5 py-2 bg-white/5 text-muted text-[10px] font-bold rounded-xl hover:bg-white/10 transition-colors active:scale-95"
                       >
-                        Cerrar
+                        Ignorar
                       </button>
                     </div>
                   </div>
@@ -340,7 +400,7 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-md glass p-8 rounded-3xl border-accent/30 shadow-2xl text-center space-y-6"
+              className="relative w-full max-w-md bg-black/95 backdrop-blur-xl p-8 rounded-3xl border border-accent/30 shadow-2xl text-center space-y-6"
             >
               <button 
                 onClick={() => setShowLockedModal(false)}
@@ -1064,7 +1124,7 @@ function ReadingView({
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 px-6 py-3 glass rounded-full border-accent/50 text-accent font-mono text-xs uppercase tracking-widest"
+            className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-black/95 backdrop-blur-xl rounded-full border border-accent/50 text-accent font-mono text-xs uppercase tracking-widest"
           >
             Marcador guardado
           </motion.div>
