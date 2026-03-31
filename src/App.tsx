@@ -56,6 +56,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [bookmarks, setBookmarks] = useState<Record<number, number>>({});
   const [showLockedModal, setShowLockedModal] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isBlurred, setIsBlurred] = useState(false);
   const [showSecurityWarning, setShowSecurityWarning] = useState(false);
@@ -349,6 +350,7 @@ export default function App() {
                   chapters={chapters}
                   onAuthorClick={handleAdminClick}
                   isAdmin={isAdmin}
+                  onAuthorMessageClick={() => setShowThankYou(true)}
                 />
               ) : view === 'reading' ? (
                 <ReadingView 
@@ -357,6 +359,8 @@ export default function App() {
                   onBack={goBack} 
                   onSaveBookmark={saveBookmark}
                   currentBookmark={bookmarks[selectedChapter!.id]}
+                  onFinish={() => setShowThankYou(true)}
+                  isLastChapter={selectedChapter!.id === 27}
                 />
               ) : (
                 <AdminView 
@@ -414,9 +418,12 @@ export default function App() {
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-2xl font-serif font-bold">Capítulo Bloqueado</h2>
+                <h2 className="text-2xl font-serif font-bold">Próximamente</h2>
                 <p className="text-muted leading-relaxed">
-                  Este capítulo aún no está disponible. Recuerda que los nuevos capítulos se publicarán a las <span className="text-accent font-bold">9:30 AM (Hora Colombiana)</span>.
+                  Este capítulo se desbloqueará muy pronto. Estamos preparando un <span className="text-accent font-bold">catálogo completo</span> con nuevos estrenos de <span className="text-accent font-bold">SAM C.</span>
+                </p>
+                <p className="text-xs font-mono text-accent/60 uppercase tracking-widest pt-2">
+                  Faltan 2 días para el gran lanzamiento
                 </p>
               </div>
 
@@ -426,6 +433,109 @@ export default function App() {
               >
                 Entendido
               </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Thank You Modal */}
+      <AnimatePresence>
+        {showThankYou && (
+          <div className="fixed inset-0 z-[500] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowThankYou(false)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0, rotate: -5 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              exit={{ scale: 0.8, opacity: 0, rotate: 5 }}
+              className="relative w-full max-w-2xl bg-gradient-to-br from-black to-zinc-900 p-12 rounded-[40px] border border-accent/40 shadow-[0_0_100px_rgba(242,125,38,0.15)] text-center space-y-10 overflow-hidden"
+            >
+              {/* Decorative Background Elements */}
+              <div className="absolute -top-24 -left-24 w-64 h-64 bg-accent/10 blur-[100px] rounded-full" />
+              <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-accent/10 blur-[100px] rounded-full" />
+              
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="space-y-4 relative z-10"
+              >
+                <span className="text-accent font-mono text-xs tracking-[0.4em] uppercase font-bold">El Acto</span>
+                <h2 className="text-5xl md:text-7xl font-serif italic font-bold tracking-tight">
+                  <ShinyText 
+                    text="¡Gracias por leer!" 
+                    speed={2} 
+                    color="#ffffff" 
+                    shineColor="#f27d26" 
+                    spread={120}
+                  />
+                </h2>
+              </motion.div>
+
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="space-y-6 relative z-10"
+              >
+                <p className="text-xl md:text-2xl text-white/90 font-light leading-relaxed max-w-lg mx-auto">
+                  Ha sido una experiencia <span className="text-accent font-serif italic">sorprendente y linda</span> compartir esta historia contigo. 
+                </p>
+                <p className="text-muted leading-relaxed">
+                  Cada palabra fue escrita pensando en el eco que dejaría en tu alma. Espero que "El Acto" haya resonado en ti tanto como lo hizo en mí al crearlo.
+                </p>
+              </motion.div>
+
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.7 }}
+                className="pt-8 relative z-10 flex flex-col items-center gap-6"
+              >
+                <div className="h-[1px] w-24 bg-accent/30" />
+                <div className="flex flex-col items-center">
+                  <span className="text-accent font-hand text-3xl mb-1">By SAM C.</span>
+                  <span className="text-[10px] font-mono text-muted uppercase tracking-[0.2em]">Autor Original</span>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    setShowThankYou(false);
+                    setView('home');
+                    setSelectedChapter(null);
+                  }}
+                  className="mt-4 px-10 py-4 bg-accent text-bg font-bold rounded-full hover:bg-accent/80 transition-all shadow-xl shadow-accent/20 active:scale-95"
+                >
+                  Volver al Inicio
+                </button>
+              </motion.div>
+
+              {/* Floating Icons */}
+              <motion.div 
+                animate={{ 
+                  y: [0, -15, 0],
+                  rotate: [0, 10, 0]
+                }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-10 right-10 text-accent/20"
+              >
+                <Heart size={40} fill="currentColor" />
+              </motion.div>
+              <motion.div 
+                animate={{ 
+                  y: [0, 15, 0],
+                  rotate: [0, -10, 0]
+                }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute bottom-10 left-10 text-accent/20"
+              >
+                <BookmarkCheck size={40} />
+              </motion.div>
             </motion.div>
           </div>
         )}
@@ -519,13 +629,15 @@ function HomeView({
   bookmarks,
   chapters,
   onAuthorClick,
-  isAdmin
+  isAdmin,
+  onAuthorMessageClick
 }: { 
   onChapterClick: (c: Chapter) => void; 
   bookmarks: Record<number, number>;
   chapters: Chapter[];
   onAuthorClick: () => void;
   isAdmin: boolean;
+  onAuthorMessageClick?: () => void;
   key?: string | number;
 }) {
   const lastBookmarkedId = Object.keys(bookmarks).map(Number).sort((a, b) => b - a)[0];
@@ -626,9 +738,9 @@ function HomeView({
           <Clock size={24} />
         </div>
         <div>
-          <h3 className="font-bold text-lg mb-1">Próximos lanzamientos</h3>
+          <h3 className="font-bold text-lg mb-1 text-accent">Próxima Evolución</h3>
           <p className="text-muted leading-snug">
-            El capítulo 1 ya está disponible. Los demás capítulos se publicarán a las <span className="text-accent font-bold">9:30 AM (Hora Colombiana)</span>. ¡No te lo pierdas!
+            Esta plataforma pronto se convertirá en un <span className="text-white font-bold">catálogo completo</span> con nuevos estrenos exclusivos de <span className="text-accent font-bold">SAM C.</span> ¡Prepárate, faltan solo <span className="text-white font-bold">2 días</span>!
           </p>
         </div>
       </motion.div>
@@ -691,6 +803,13 @@ function HomeView({
         <div className="flex justify-center gap-6 text-muted">
           <button className="hover:text-accent transition-colors"><Share2 size={18} /></button>
           <button className="hover:text-accent transition-colors"><Heart size={18} /></button>
+          <button 
+            onClick={() => onAuthorMessageClick?.()}
+            className="hover:text-accent transition-colors flex items-center gap-1 text-xs font-mono uppercase tracking-widest"
+          >
+            <MessageSquare size={18} />
+            Mensaje
+          </button>
         </div>
         <p 
           className="text-xs font-mono text-muted/50 tracking-widest uppercase cursor-pointer"
@@ -1036,12 +1155,16 @@ function ReadingView({
   chapter, 
   onBack, 
   onSaveBookmark,
-  currentBookmark
+  currentBookmark,
+  onFinish,
+  isLastChapter
 }: { 
   chapter: Chapter; 
   onBack: () => void; 
   onSaveBookmark: (id: number, pos: number) => void;
   currentBookmark?: number;
+  onFinish?: () => void;
+  isLastChapter?: boolean;
   key?: string | number;
 }) {
   const [progress, setProgress] = useState(0);
@@ -1159,12 +1282,21 @@ function ReadingView({
           <p className="text-muted font-serif italic text-lg">Fin del capítulo {chapter.id}</p>
           
           <div className="flex flex-col items-center gap-4">
-            <button 
-              onClick={handleBack}
-              className="px-12 py-4 glass rounded-full hover:bg-white/10 transition-colors font-bold"
-            >
-              Volver al Índice
-            </button>
+            {isLastChapter ? (
+              <button 
+                onClick={onFinish}
+                className="px-12 py-4 bg-accent text-bg rounded-full hover:bg-accent/80 transition-all font-bold shadow-xl shadow-accent/20 scale-110"
+              >
+                Finalizar Historia
+              </button>
+            ) : (
+              <button 
+                onClick={handleBack}
+                className="px-12 py-4 glass rounded-full hover:bg-white/10 transition-colors font-bold"
+              >
+                Volver al Índice
+              </button>
+            )}
           </div>
 
           <div className="pt-12 space-y-2">
