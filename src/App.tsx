@@ -815,25 +815,58 @@ function HomeView({
           <h2 className="text-2xl font-serif italic">Futuros Colaboradores y Autores</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-6 glass rounded-3xl border-white/5 hover:border-accent/30 transition-all group relative overflow-hidden">
-            <div className="absolute -right-8 -top-8 w-32 h-32 bg-accent/5 blur-3xl rounded-full group-hover:bg-accent/10 transition-colors" />
-            <div className="flex items-center gap-5 relative z-10">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent/20 to-transparent flex items-center justify-center text-accent border border-accent/20">
-                <BookOpen size={24} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Carolina Card */}
+          <div className="group relative aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-zinc-900/50 border border-white/5 hover:border-accent/40 transition-all duration-700">
+            {/* Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
+            <div className="absolute inset-0 bg-accent/5 group-hover:bg-accent/10 transition-colors duration-700" />
+            
+            {/* Content */}
+            <div className="absolute inset-0 p-10 flex flex-col justify-end z-20">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-[1px] w-8 bg-accent" />
+                  <span className="text-accent font-mono text-[10px] uppercase tracking-[0.3em] font-bold">Autora Invitada</span>
+                </div>
+                
+                <h3 className="text-5xl font-serif italic font-bold text-white group-hover:text-accent transition-colors duration-500 leading-none">
+                  Carolina
+                </h3>
+                
+                <div className="pt-6 border-t border-white/10 space-y-1">
+                  <p className="text-[10px] font-mono text-muted uppercase tracking-[0.2em]">Obra en camino</p>
+                  <p className="text-2xl font-serif text-white/90 italic">"Hana"</p>
+                </div>
+                
+                <div className="pt-4 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
+                  <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent flex items-center gap-2">
+                    Próximamente <ArrowRight size={12} />
+                  </div>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold">Carolina</h3>
-                <p className="text-accent font-mono text-[10px] uppercase tracking-widest mb-1">Próxima Historia</p>
-                <p className="text-muted text-sm italic">"Hana"</p>
-              </div>
+            </div>
+
+            {/* Decorative Initial */}
+            <div className="absolute top-10 right-10 text-white/5 font-serif text-[10rem] italic leading-none select-none group-hover:text-accent/10 transition-colors duration-700">
+              H
             </div>
           </div>
           
-          <div className="p-6 glass rounded-3xl border-white/5 border-dashed flex items-center justify-center text-muted/30">
-            <div className="text-center">
-              <Plus size={24} className="mx-auto mb-2 opacity-20" />
-              <p className="text-xs font-mono uppercase tracking-widest">Tu historia aquí</p>
+          {/* Add Your Story Card */}
+          <div className="group relative aspect-[4/5] overflow-hidden rounded-[2.5rem] border border-dashed border-white/10 hover:border-accent/40 transition-all duration-700 flex flex-col items-center justify-center text-center p-10">
+            <div className="absolute inset-0 bg-white/[0.02] group-hover:bg-accent/[0.02] transition-colors" />
+            <div className="relative z-10 space-y-6">
+              <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center mx-auto group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500 bg-black/40 backdrop-blur-sm">
+                <Plus size={32} className="text-muted group-hover:text-accent transition-colors" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-serif italic text-muted group-hover:text-white transition-colors">Tu Historia Aquí</h3>
+                <p className="text-[10px] font-mono text-muted/50 uppercase tracking-[0.3em]">Únete al colectivo de SAM C.</p>
+              </div>
+              <button className="mt-4 px-6 py-2 border border-white/10 rounded-full text-[10px] font-mono uppercase tracking-widest text-muted hover:text-accent hover:border-accent transition-all">
+                Contactar
+              </button>
             </div>
           </div>
         </div>
