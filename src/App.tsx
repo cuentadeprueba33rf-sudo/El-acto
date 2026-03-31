@@ -52,8 +52,9 @@ import { cn } from './lib/utils';
 import ShinyText from './components/ShinyText';
 
 export default function App() {
+  const [selectedStory, setSelectedStory] = useState<'el-acto' | 'hana' | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
-  const [view, setView] = useState<'home' | 'reading' | 'admin'>('home');
+  const [view, setView] = useState<'catalog' | 'story-detail' | 'reading' | 'admin'>('catalog');
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -208,8 +209,27 @@ export default function App() {
     }
   };
 
+  const handleStorySelect = (storyId: 'el-acto' | 'hana') => {
+    if (storyId === 'el-acto') {
+      setSelectedStory('el-acto');
+      setView('story-detail');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // Hana is coming soon, maybe show a toast or just stay in catalog
+      // For now, let's allow selecting it but it will show "Coming Soon" in detail
+      setSelectedStory('hana');
+      setView('story-detail');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const goBack = () => {
-    setView('home');
+    if (view === 'reading') {
+      setView('story-detail');
+    } else {
+      setView('catalog');
+      setSelectedStory(null);
+    }
     setSelectedChapter(null);
   };
 
@@ -345,15 +365,23 @@ export default function App() {
             </AnimatePresence>
 
             <AnimatePresence mode="wait">
-              {view === 'home' ? (
+              {view === 'catalog' ? (
+                <CatalogView 
+                  key="catalog"
+                  onStorySelect={handleStorySelect}
+                  onAuthorClick={handleAdminClick}
+                />
+              ) : view === 'story-detail' ? (
                 <HomeView 
-                  key="home" 
+                  key="story-detail" 
+                  storyId={selectedStory!}
                   onChapterClick={handleChapterClick} 
                   bookmarks={bookmarks}
                   chapters={chapters}
                   onAuthorClick={handleAdminClick}
                   isAdmin={isAdmin}
                   onAuthorMessageClick={() => setShowThankYou(true)}
+                  onBack={goBack}
                 />
               ) : view === 'reading' ? (
                 <ReadingView 
@@ -444,101 +472,134 @@ export default function App() {
       {/* Thank You Modal */}
       <AnimatePresence>
         {showThankYou && (
-          <div className="fixed inset-0 z-[500] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[500] flex items-center justify-center p-0 md:p-12">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowThankYou(false)}
-              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+              className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
             />
+            
+            {/* Immersive Background Gradients */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <motion.div 
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0.5, 0.3],
+                  x: [0, 50, 0],
+                  y: [0, 30, 0]
+                }}
+                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-accent/20 blur-[120px] rounded-full" 
+              />
+              <motion.div 
+                animate={{ 
+                  scale: [1.2, 1, 1.2],
+                  opacity: [0.2, 0.4, 0.2],
+                  x: [0, -50, 0],
+                  y: [0, -30, 0]
+                }}
+                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-accent/10 blur-[120px] rounded-full" 
+              />
+            </div>
+
             <motion.div 
-              initial={{ scale: 0.8, opacity: 0, rotate: -5 }}
-              animate={{ scale: 1, opacity: 1, rotate: 0 }}
-              exit={{ scale: 0.8, opacity: 0, rotate: 5 }}
-              className="relative w-full max-w-2xl bg-gradient-to-br from-black to-zinc-900 p-12 rounded-[40px] border border-accent/40 shadow-[0_0_100px_rgba(242,125,38,0.15)] text-center space-y-10 overflow-hidden"
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -100, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 100 }}
+              className="relative w-full h-full max-w-6xl bg-zinc-900/40 border-x border-white/5 md:rounded-[3rem] md:border overflow-hidden flex flex-col md:flex-row"
             >
-              {/* Decorative Background Elements */}
-              <div className="absolute -top-24 -left-24 w-64 h-64 bg-accent/10 blur-[100px] rounded-full" />
-              <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-accent/10 blur-[100px] rounded-full" />
-              
-              <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="space-y-4 relative z-10"
-              >
-                <span className="text-accent font-mono text-xs tracking-[0.4em] uppercase font-bold">El Acto</span>
-                <h2 className="text-5xl md:text-7xl font-serif italic font-bold tracking-tight">
-                  <ShinyText 
-                    text="¡Gracias por leer!" 
-                    speed={2} 
-                    color="#ffffff" 
-                    shineColor="#f27d26" 
-                    spread={120}
-                  />
-                </h2>
-              </motion.div>
-
-              <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="space-y-6 relative z-10"
-              >
-                <p className="text-xl md:text-2xl text-white/90 font-light leading-relaxed max-w-lg mx-auto">
-                  Ha sido una experiencia <span className="text-accent font-serif italic">sorprendente y linda</span> compartir esta historia contigo. 
-                </p>
-                <p className="text-muted leading-relaxed">
-                  Cada palabra fue escrita pensando en el eco que dejaría en tu alma. Espero que "El Acto" haya resonado en ti tanto como lo hizo en mí al crearlo.
-                </p>
-              </motion.div>
-
-              <motion.div 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.7 }}
-                className="pt-8 relative z-10 flex flex-col items-center gap-6"
-              >
-                <div className="h-[1px] w-24 bg-accent/30" />
-                <div className="flex flex-col items-center">
-                  <span className="text-accent font-hand text-3xl mb-1">By SAM C.</span>
-                  <span className="text-[10px] font-mono text-muted uppercase tracking-[0.2em]">Autor Original</span>
+              {/* Left Side: Visual/Atmospheric */}
+              <div className="hidden md:block w-1/3 relative border-r border-white/5 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black z-10" />
+                <img 
+                  src="https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png" 
+                  className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale hover:grayscale-0 transition-all duration-1000 scale-110 hover:scale-100"
+                  alt="Atmosphere"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute bottom-12 left-12 z-20 space-y-2">
+                  <p className="text-accent font-mono text-[10px] uppercase tracking-[0.4em] font-bold">El Acto</p>
+                  <h3 className="text-4xl font-serif italic text-white leading-none">Fin de la función.</h3>
                 </div>
-                
-                <button 
-                  onClick={() => {
-                    setShowThankYou(false);
-                    setView('home');
-                    setSelectedChapter(null);
-                  }}
-                  className="mt-4 px-10 py-4 bg-accent text-bg font-bold rounded-full hover:bg-accent/80 transition-all shadow-xl shadow-accent/20 active:scale-95"
-                >
-                  Volver al Inicio
-                </button>
-              </motion.div>
+              </div>
 
-              {/* Floating Icons */}
-              <motion.div 
-                animate={{ 
-                  y: [0, -15, 0],
-                  rotate: [0, 10, 0]
-                }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-10 right-10 text-accent/20"
-              >
-                <Heart size={40} fill="currentColor" />
-              </motion.div>
-              <motion.div 
-                animate={{ 
-                  y: [0, 15, 0],
-                  rotate: [0, -10, 0]
-                }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute bottom-10 left-10 text-accent/20"
-              >
-                <BookmarkCheck size={40} />
-              </motion.div>
+              {/* Right Side: Content */}
+              <div className="flex-1 p-8 md:p-20 flex flex-col justify-center relative overflow-y-auto custom-scrollbar">
+                <button 
+                  onClick={() => setShowThankYou(false)}
+                  className="absolute top-8 right-8 p-2 text-muted hover:text-white transition-colors z-50"
+                >
+                  <X size={24} />
+                </button>
+
+                <div className="max-w-xl space-y-12">
+                  <motion.div 
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="space-y-4"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-[1px] w-12 bg-accent" />
+                      <span className="text-accent font-mono text-xs tracking-[0.3em] uppercase">Nota del Autor</span>
+                    </div>
+                    <h2 className="text-6xl md:text-8xl font-serif italic font-bold tracking-tighter leading-[0.85]">
+                      Gracias por <br />
+                      <span className="text-accent">sentir</span> esto.
+                    </h2>
+                  </motion.div>
+
+                  <motion.div 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                    className="space-y-8"
+                  >
+                    <p className="text-xl md:text-2xl text-white/80 font-light leading-relaxed font-serif italic">
+                      "Ha sido una experiencia sorprendente y linda compartir esta historia contigo. Cada palabra fue escrita pensando en el eco que dejaría en tu alma."
+                    </p>
+                    <p className="text-muted leading-relaxed text-lg">
+                      Espero que <span className="text-white italic">El Acto</span> haya resonado en ti tanto como lo hizo en mí al crearlo. Esta historia ahora también te pertenece.
+                    </p>
+                  </motion.div>
+
+                  <motion.div 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                    className="pt-12 flex flex-col sm:flex-row items-start sm:items-center gap-12"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-accent font-hand text-5xl mb-2">By SAM C.</span>
+                      <span className="text-[10px] font-mono text-muted uppercase tracking-[0.3em]">Autor Original</span>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <button 
+                        onClick={() => {
+                          setShowThankYou(false);
+                          setView('home');
+                          setSelectedChapter(null);
+                        }}
+                        className="px-10 py-4 bg-white text-black font-bold rounded-full hover:bg-accent hover:text-white transition-all duration-500 shadow-2xl active:scale-95 text-sm uppercase tracking-widest"
+                      >
+                        Cerrar Telón
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Decorative Vertical Text */}
+                <div className="absolute right-8 bottom-24 hidden lg:block">
+                  <p className="writing-mode-vertical text-[10px] font-mono text-white/10 uppercase tracking-[0.5em] rotate-180">
+                    UNA HISTORIA ORIGINAL • 2026 • SAM C.
+                  </p>
+                </div>
+              </div>
             </motion.div>
           </div>
         )}
@@ -627,24 +688,286 @@ function LoadingScreen(_props: { key?: string | number; onAuthorClick?: () => vo
   );
 }
 
+function CatalogView({ 
+  onStorySelect,
+  onAuthorClick 
+}: { 
+  onStorySelect: (id: 'el-acto' | 'hana') => void;
+  onAuthorClick: () => void;
+  key?: string | number;
+}) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen pt-24 pb-12 px-6 max-w-7xl mx-auto relative overflow-hidden"
+    >
+      {/* Background Decorative Elements */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
+      {/* Catalog Header */}
+      <header className="mb-24 text-center space-y-6">
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="inline-flex items-center gap-3 px-4 py-2 glass rounded-full border-accent/30"
+        >
+          <Sparkles size={14} className="text-accent animate-pulse" />
+          <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent font-bold">Catálogo en Construcción</span>
+        </motion.div>
+        
+        <h1 className="text-7xl md:text-9xl font-serif italic font-bold tracking-tighter leading-none">
+          SAM C. <br />
+          <span className="text-white/20">Colección</span>
+        </h1>
+        
+        <p className="text-muted max-w-2xl mx-auto text-lg font-light leading-relaxed">
+          Un espacio editorial dedicado a historias que desafían la realidad. <br />
+          Explora el universo literario de SAM C. y sus colaboradores.
+        </p>
+      </header>
+
+      {/* Stories Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-32">
+        {/* El Acto Story Card */}
+        <motion.div 
+          initial={{ x: -50, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          onClick={() => onStorySelect('el-acto')}
+          className="group relative aspect-[16/10] overflow-hidden rounded-[3rem] cursor-pointer border border-white/5 hover:border-accent/40 transition-all duration-700"
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
+          <img 
+            src="https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png" 
+            className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000"
+            alt="El Acto"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 p-12 flex flex-col justify-end z-20">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-[1px] w-8 bg-accent" />
+                <span className="text-accent font-mono text-[10px] uppercase tracking-[0.3em] font-bold">Disponible Ahora</span>
+              </div>
+              <h2 className="text-6xl font-serif italic font-bold text-white leading-none">El Acto</h2>
+              <p className="text-muted text-sm max-w-md opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                Una historia que desafía la percepción, donde cada cuerda vibrante cuenta un secreto.
+              </p>
+              <div className="pt-4 flex items-center gap-4">
+                <span className="px-4 py-2 glass rounded-full text-[10px] font-mono uppercase tracking-widest">27 Capítulos</span>
+                <div className="w-10 h-10 rounded-full bg-accent text-bg flex items-center justify-center transform translate-x-[-20px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500">
+                  <ArrowRight size={20} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Hana Story Card */}
+        <motion.div 
+          initial={{ x: 50, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          onClick={() => onStorySelect('hana')}
+          className="group relative aspect-[16/10] overflow-hidden rounded-[3rem] cursor-pointer border border-dashed border-white/10 hover:border-accent/40 transition-all duration-700"
+        >
+          <div className="absolute inset-0 bg-black/60 z-10" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-12 text-center space-y-6">
+            <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500">
+              <Clock size={32} className="text-muted group-hover:text-accent transition-colors" />
+            </div>
+            <div className="space-y-2">
+              <span className="text-accent font-mono text-[10px] uppercase tracking-[0.3em] font-bold">Próximamente</span>
+              <h2 className="text-6xl font-serif italic font-bold text-white/40 group-hover:text-white transition-colors leading-none">Hana</h2>
+              <p className="text-muted/50 text-sm font-mono uppercase tracking-widest">Por Carolina</p>
+            </div>
+            <div className="pt-4">
+              <p className="text-xs font-mono text-accent/60 uppercase tracking-[0.2em]">Faltan 2 días para el estreno</p>
+            </div>
+          </div>
+          {/* Decorative Background Initial */}
+          <div className="absolute inset-0 flex items-center justify-center text-white/[0.02] font-serif text-[20rem] italic leading-none select-none pointer-events-none">
+            H
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Future Collaborators Section */}
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true }}
+        className="mb-32 space-y-12"
+      >
+        <div className="flex items-center justify-center gap-3">
+          <div className="p-2 bg-accent/10 rounded-lg text-accent">
+            <Users size={20} />
+          </div>
+          <h2 className="text-4xl font-serif italic">Futuros Colaboradores</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Carolina Card */}
+          <div className="group relative aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-zinc-900/50 border border-white/5 hover:border-accent/40 transition-all duration-700">
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
+            <div className="absolute inset-0 bg-accent/5 group-hover:bg-accent/10 transition-colors duration-700" />
+            <div className="absolute inset-0 p-10 flex flex-col justify-end z-20">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-[1px] w-8 bg-accent" />
+                  <span className="text-accent font-mono text-[10px] uppercase tracking-[0.3em] font-bold">Autora Invitada</span>
+                </div>
+                <h3 className="text-5xl font-serif italic font-bold text-white group-hover:text-accent transition-colors duration-500 leading-none">Carolina</h3>
+                <div className="pt-6 border-t border-white/10 space-y-1">
+                  <p className="text-[10px] font-mono text-muted uppercase tracking-[0.2em]">Obra en camino</p>
+                  <p className="text-2xl font-serif text-white/90 italic">"Hana"</p>
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-10 right-10 text-white/5 font-serif text-[10rem] italic leading-none select-none group-hover:text-accent/10 transition-colors duration-700">H</div>
+          </div>
+          
+          {/* Add Your Story Card */}
+          <div className="group relative aspect-[4/5] overflow-hidden rounded-[2.5rem] border border-dashed border-white/10 hover:border-accent/40 transition-all duration-700 flex flex-col items-center justify-center text-center p-10">
+            <div className="absolute inset-0 bg-white/[0.02] group-hover:bg-accent/[0.02] transition-colors" />
+            <div className="relative z-10 space-y-6">
+              <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center mx-auto group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500 bg-black/40 backdrop-blur-sm">
+                <Plus size={32} className="text-muted group-hover:text-accent transition-colors" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-serif italic text-muted group-hover:text-white transition-colors">Tu Historia Aquí</h3>
+                <p className="text-[10px] font-mono text-muted/50 uppercase tracking-[0.3em]">Únete al colectivo de SAM C.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Iconic Characters Section */}
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true }}
+        className="mb-32 space-y-12"
+      >
+        <div className="flex items-center justify-center gap-3">
+          <div className="p-2 bg-accent/10 rounded-lg text-accent">
+            <Star size={20} />
+          </div>
+          <h2 className="text-4xl font-serif italic">Personajes Icónicos</h2>
+        </div>
+
+        <div className="relative group max-w-4xl mx-auto">
+          <div className="absolute inset-0 bg-accent/5 blur-3xl rounded-full opacity-50" />
+          <div className="relative glass p-12 rounded-[40px] border-white/5 border-dashed text-center space-y-4">
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto text-accent/40 animate-pulse">
+              <Sparkles size={32} />
+            </div>
+            <h3 className="text-3xl font-serif italic text-white/40">Muy Pronto</h3>
+            <p className="text-muted/40 max-w-sm mx-auto text-sm">
+              Estamos preparando una galería interactiva con los perfiles y secretos de los personajes que dan vida a este universo.
+            </p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Catalog Footer */}
+      <footer className="pt-12 border-t border-white/5 text-center space-y-6">
+        <div className="flex justify-center gap-8 text-muted">
+          <button className="hover:text-accent transition-colors flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest">
+            <Share2 size={14} /> Compartir
+          </button>
+          <button className="hover:text-accent transition-colors flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest">
+            <Heart size={14} /> Favoritos
+          </button>
+        </div>
+        <p 
+          className="text-[10px] font-mono text-muted/30 tracking-[0.4em] uppercase cursor-pointer hover:text-accent transition-colors"
+          onClick={onAuthorClick}
+        >
+          © 2026 SAM C. EDITORIAL • TODOS LOS DERECHOS RESERVADOS
+        </p>
+      </footer>
+    </motion.div>
+  );
+}
+
 function HomeView({ 
+  storyId,
   onChapterClick, 
   bookmarks,
   chapters,
   onAuthorClick,
   isAdmin,
-  onAuthorMessageClick
+  onAuthorMessageClick,
+  onBack
 }: { 
+  storyId: 'el-acto' | 'hana';
   onChapterClick: (c: Chapter) => void; 
   bookmarks: Record<number, number>;
   chapters: Chapter[];
   onAuthorClick: () => void;
   isAdmin: boolean;
   onAuthorMessageClick?: () => void;
+  onBack: () => void;
   key?: string | number;
 }) {
   const lastBookmarkedId = Object.keys(bookmarks).map(Number).sort((a, b) => b - a)[0];
   const lastChapter = chapters.find(c => c.id === lastBookmarkedId);
+
+  if (storyId === 'hana') {
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-12"
+      >
+        <button 
+          onClick={onBack}
+          className="fixed top-12 left-12 p-4 glass rounded-full hover:bg-white/10 transition-colors z-50"
+        >
+          <ChevronLeft size={24} />
+        </button>
+
+        <div className="space-y-6">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-32 h-32 bg-accent/10 rounded-full flex items-center justify-center mx-auto text-accent"
+          >
+            <Clock size={48} className="animate-pulse" />
+          </motion.div>
+          
+          <div className="space-y-2">
+            <span className="text-accent font-mono text-xs tracking-[0.4em] uppercase font-bold">Próximo Estreno</span>
+            <h1 className="text-7xl md:text-9xl font-serif italic font-bold tracking-tighter">Hana</h1>
+            <p className="text-muted font-mono uppercase tracking-widest">Por Carolina</p>
+          </div>
+        </div>
+
+        <div className="max-w-md glass p-8 rounded-[2rem] border-accent/30 space-y-4">
+          <h3 className="text-xl font-bold">Obra en Construcción</h3>
+          <p className="text-muted leading-relaxed">
+            Estamos preparando los últimos detalles para el lanzamiento de esta nueva historia. Vuelve en <span className="text-accent font-bold">2 días</span> para descubrir el universo de Hana.
+          </p>
+          <div className="pt-4">
+            <button 
+              onClick={onBack}
+              className="px-8 py-3 bg-accent text-bg font-bold rounded-full hover:bg-accent/80 transition-colors"
+            >
+              Volver al Catálogo
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div 
@@ -653,6 +976,22 @@ function HomeView({
       exit={{ opacity: 0 }}
       className="max-w-4xl mx-auto px-6 py-12 md:py-24"
     >
+      {/* Back to Catalog */}
+      <button 
+        onClick={onBack}
+        className="fixed top-12 left-12 p-4 glass rounded-full hover:bg-white/10 transition-colors z-50 hidden lg:flex items-center gap-2 group"
+      >
+        <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+        <span className="text-[10px] font-mono uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Catálogo</span>
+      </button>
+
+      <button 
+        onClick={onBack}
+        className="lg:hidden mb-12 flex items-center gap-2 text-muted hover:text-accent transition-colors"
+      >
+        <ChevronLeft size={20} />
+        <span className="text-xs font-mono uppercase tracking-widest">Volver al Catálogo</span>
+      </button>
       {/* Hero Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-24">
         <motion.div 
@@ -749,7 +1088,7 @@ function HomeView({
       </motion.div>
 
       {/* Chapter List */}
-      <div className="space-y-4">
+      <div className="space-y-4 pb-24">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-serif italic">Índice de Capítulos</h2>
           <div className="flex items-center gap-4">
@@ -801,107 +1140,8 @@ function HomeView({
         </div>
       </div>
 
-      {/* Future Collaborators Section */}
-      <motion.div 
-        initial={{ y: 30, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true }}
-        className="mt-24 space-y-8"
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-accent/10 rounded-lg text-accent">
-            <Users size={20} />
-          </div>
-          <h2 className="text-2xl font-serif italic">Futuros Colaboradores y Autores</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Carolina Card */}
-          <div className="group relative aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-zinc-900/50 border border-white/5 hover:border-accent/40 transition-all duration-700">
-            {/* Background Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
-            <div className="absolute inset-0 bg-accent/5 group-hover:bg-accent/10 transition-colors duration-700" />
-            
-            {/* Content */}
-            <div className="absolute inset-0 p-10 flex flex-col justify-end z-20">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-[1px] w-8 bg-accent" />
-                  <span className="text-accent font-mono text-[10px] uppercase tracking-[0.3em] font-bold">Autora Invitada</span>
-                </div>
-                
-                <h3 className="text-5xl font-serif italic font-bold text-white group-hover:text-accent transition-colors duration-500 leading-none">
-                  Carolina
-                </h3>
-                
-                <div className="pt-6 border-t border-white/10 space-y-1">
-                  <p className="text-[10px] font-mono text-muted uppercase tracking-[0.2em]">Obra en camino</p>
-                  <p className="text-2xl font-serif text-white/90 italic">"Hana"</p>
-                </div>
-                
-                <div className="pt-4 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-                  <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-accent flex items-center gap-2">
-                    Próximamente <ArrowRight size={12} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Decorative Initial */}
-            <div className="absolute top-10 right-10 text-white/5 font-serif text-[10rem] italic leading-none select-none group-hover:text-accent/10 transition-colors duration-700">
-              H
-            </div>
-          </div>
-          
-          {/* Add Your Story Card */}
-          <div className="group relative aspect-[4/5] overflow-hidden rounded-[2.5rem] border border-dashed border-white/10 hover:border-accent/40 transition-all duration-700 flex flex-col items-center justify-center text-center p-10">
-            <div className="absolute inset-0 bg-white/[0.02] group-hover:bg-accent/[0.02] transition-colors" />
-            <div className="relative z-10 space-y-6">
-              <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center mx-auto group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500 bg-black/40 backdrop-blur-sm">
-                <Plus size={32} className="text-muted group-hover:text-accent transition-colors" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-serif italic text-muted group-hover:text-white transition-colors">Tu Historia Aquí</h3>
-                <p className="text-[10px] font-mono text-muted/50 uppercase tracking-[0.3em]">Únete al colectivo de SAM C.</p>
-              </div>
-              <button className="mt-4 px-6 py-2 border border-white/10 rounded-full text-[10px] font-mono uppercase tracking-widest text-muted hover:text-accent hover:border-accent transition-all">
-                Contactar
-              </button>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Iconic Characters Section */}
-      <motion.div 
-        initial={{ y: 30, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true }}
-        className="mt-24 space-y-8"
-      >
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-accent/10 rounded-lg text-accent">
-            <Star size={20} />
-          </div>
-          <h2 className="text-2xl font-serif italic">Personajes Icónicos</h2>
-        </div>
-
-        <div className="relative group">
-          <div className="absolute inset-0 bg-accent/5 blur-3xl rounded-full opacity-50" />
-          <div className="relative glass p-12 rounded-[40px] border-white/5 border-dashed text-center space-y-4">
-            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto text-accent/40 animate-pulse">
-              <Sparkles size={32} />
-            </div>
-            <h3 className="text-3xl font-serif italic text-white/40">Muy Pronto</h3>
-            <p className="text-muted/40 max-w-sm mx-auto text-sm">
-              Estamos preparando una galería interactiva con los perfiles y secretos de los personajes que dan vida a este universo.
-            </p>
-          </div>
-        </div>
-      </motion.div>
-
       {/* Footer */}
-      <footer className="mt-24 pt-12 border-t border-white/5 text-center space-y-4">
+      <footer className="pt-12 border-t border-white/5 text-center space-y-4">
         <div className="flex justify-center gap-6 text-muted">
           <button className="hover:text-accent transition-colors"><Share2 size={18} /></button>
           <button className="hover:text-accent transition-colors"><Heart size={18} /></button>
@@ -918,9 +1158,6 @@ function HomeView({
           onClick={onAuthorClick}
         >
           © 2026 SAM C. Todos los derechos reservados.
-        </p>
-        <p className="text-[10px] text-muted/30 italic">
-          Esta es una obra de ficción. Cualquier parecido con la realidad es pura coincidencia.
         </p>
       </footer>
     </motion.div>
