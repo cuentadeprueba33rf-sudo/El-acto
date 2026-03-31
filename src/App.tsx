@@ -22,7 +22,10 @@ import {
   Unlock,
   LogOut,
   ShieldCheck,
-  RotateCcw
+  RotateCcw,
+  Users,
+  Sparkles,
+  Star
 } from 'lucide-react';
 import { 
   doc, 
@@ -797,6 +800,72 @@ function HomeView({
           ))}
         </div>
       </div>
+
+      {/* Future Collaborators Section */}
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true }}
+        className="mt-24 space-y-8"
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-accent/10 rounded-lg text-accent">
+            <Users size={20} />
+          </div>
+          <h2 className="text-2xl font-serif italic">Futuros Colaboradores y Autores</h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-6 glass rounded-3xl border-white/5 hover:border-accent/30 transition-all group relative overflow-hidden">
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-accent/5 blur-3xl rounded-full group-hover:bg-accent/10 transition-colors" />
+            <div className="flex items-center gap-5 relative z-10">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent/20 to-transparent flex items-center justify-center text-accent border border-accent/20">
+                <BookOpen size={24} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">Carolina</h3>
+                <p className="text-accent font-mono text-[10px] uppercase tracking-widest mb-1">Próxima Historia</p>
+                <p className="text-muted text-sm italic">"Hana"</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-6 glass rounded-3xl border-white/5 border-dashed flex items-center justify-center text-muted/30">
+            <div className="text-center">
+              <Plus size={24} className="mx-auto mb-2 opacity-20" />
+              <p className="text-xs font-mono uppercase tracking-widest">Tu historia aquí</p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Iconic Characters Section */}
+      <motion.div 
+        initial={{ y: 30, opacity: 0 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true }}
+        className="mt-24 space-y-8"
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-accent/10 rounded-lg text-accent">
+            <Star size={20} />
+          </div>
+          <h2 className="text-2xl font-serif italic">Personajes Icónicos</h2>
+        </div>
+
+        <div className="relative group">
+          <div className="absolute inset-0 bg-accent/5 blur-3xl rounded-full opacity-50" />
+          <div className="relative glass p-12 rounded-[40px] border-white/5 border-dashed text-center space-y-4">
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto text-accent/40 animate-pulse">
+              <Sparkles size={32} />
+            </div>
+            <h3 className="text-3xl font-serif italic text-white/40">Muy Pronto</h3>
+            <p className="text-muted/40 max-w-sm mx-auto text-sm">
+              Estamos preparando una galería interactiva con los perfiles y secretos de los personajes que dan vida a este universo.
+            </p>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Footer */}
       <footer className="mt-24 pt-12 border-t border-white/5 text-center space-y-4">
