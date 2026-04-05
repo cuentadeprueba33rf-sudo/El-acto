@@ -54,8 +54,87 @@ import { CHAPTERS as INITIAL_CHAPTERS, type Chapter } from './constants';
 import { cn } from './lib/utils';
 import ShinyText from './components/ShinyText';
 
+export type Genre = 'Sci-Fi' | 'BL' | 'Terror Psicológico' | 'Romance' | 'Fantasía' | 'Drama' | 'Misterio' | 'Thriller' | 'Contemporáneo' | 'Todos';
+
+export interface StoryInfo {
+  id: string;
+  title: string;
+  author: string;
+  description: string;
+  coverUrl: string;
+  status: 'Disponible' | 'Próximamente' | 'En Progreso';
+  chapters?: number;
+  releaseDate?: string;
+  genres: Genre[];
+  isFeatured?: boolean;
+}
+
+export const CATALOG_DATA: StoryInfo[] = [
+  {
+    id: 'el-acto',
+    title: 'El Acto',
+    author: 'Sam C.',
+    description: '"Una inmersión profunda en la psique humana a través del arte y la obsesión. La historia que definió una nueva era editorial."',
+    coverUrl: 'https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png',
+    status: 'Disponible',
+    chapters: 27,
+    genres: ['Sci-Fi', 'BL', 'Terror Psicológico'],
+    isFeatured: true
+  },
+  {
+    id: 'hana',
+    title: 'Hana',
+    author: 'Carolina',
+    description: 'Una historia que desafía los límites de la narrativa convencional.',
+    coverUrl: '',
+    status: 'Próximamente',
+    releaseDate: 'Estreno en 2 días',
+    genres: ['Drama', 'Contemporáneo']
+  },
+  {
+    id: 'ecos-del-manana',
+    title: 'Ecos del Mañana',
+    author: 'A. R. Vane',
+    description: 'En un futuro donde los recuerdos se pueden comprar y vender, un detective busca su propio pasado robado.',
+    coverUrl: 'https://picsum.photos/seed/scifi1/800/1200?blur=2',
+    status: 'Disponible',
+    chapters: 15,
+    genres: ['Sci-Fi', 'Thriller', 'Misterio']
+  },
+  {
+    id: 'sombras-de-neón',
+    title: 'Sombras de Neón',
+    author: 'K. L. Reyes',
+    description: 'Dos hackers rivales descubren una conspiración que amenaza con apagar la red global, forzándolos a colaborar.',
+    coverUrl: 'https://picsum.photos/seed/neon/800/1200?blur=2',
+    status: 'Disponible',
+    chapters: 42,
+    genres: ['Sci-Fi', 'BL', 'Romance']
+  },
+  {
+    id: 'el-laberinto-de-cristal',
+    title: 'El Laberinto de Cristal',
+    author: 'M. T. Silva',
+    description: 'Un thriller psicológico sobre un arquitecto atrapado en el edificio que él mismo diseñó, donde las leyes de la física parecen no aplicar.',
+    coverUrl: 'https://picsum.photos/seed/glass/800/1200?blur=2',
+    status: 'En Progreso',
+    chapters: 8,
+    genres: ['Terror Psicológico', 'Misterio']
+  },
+  {
+    id: 'susurros-del-bosque',
+    title: 'Susurros del Bosque',
+    author: 'Elena M.',
+    description: 'Una antigua maldición despierta en un pequeño pueblo, y solo dos forasteros pueden detenerla antes de que consuma todo.',
+    coverUrl: 'https://picsum.photos/seed/forest/800/1200?blur=2',
+    status: 'Próximamente',
+    releaseDate: 'Otoño 2026',
+    genres: ['Fantasía', 'Terror Psicológico']
+  }
+];
+
 export default function App() {
-  const [selectedStory, setSelectedStory] = useState<'el-acto' | 'hana' | null>(null);
+  const [selectedStory, setSelectedStory] = useState<string | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [view, setView] = useState<'catalog' | 'story-detail' | 'reading' | 'admin'>('catalog');
   const [chapters, setChapters] = useState<Chapter[]>([]);
@@ -212,18 +291,10 @@ export default function App() {
     }
   };
 
-  const handleStorySelect = (storyId: 'el-acto' | 'hana') => {
-    if (storyId === 'el-acto') {
-      setSelectedStory('el-acto');
-      setView('story-detail');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      // Hana is coming soon, maybe show a toast or just stay in catalog
-      // For now, let's allow selecting it but it will show "Coming Soon" in detail
-      setSelectedStory('hana');
-      setView('story-detail');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+  const handleStorySelect = (storyId: string) => {
+    setSelectedStory(storyId);
+    setView('story-detail');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const goBack = () => {
@@ -526,13 +597,13 @@ export default function App() {
               <div className="hidden md:block w-1/3 relative border-r border-white/5 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black z-10" />
                 <img 
-                  src="https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png" 
+                  src={CATALOG_DATA.find(s => s.id === selectedStory)?.coverUrl || "https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png"} 
                   className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale hover:grayscale-0 transition-all duration-1000 scale-110 hover:scale-100"
                   alt="Atmosphere"
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute bottom-12 left-12 z-20 space-y-2">
-                  <p className="text-accent font-mono text-[10px] uppercase tracking-[0.4em] font-bold">El Acto</p>
+                  <p className="text-accent font-mono text-[10px] uppercase tracking-[0.4em] font-bold">{CATALOG_DATA.find(s => s.id === selectedStory)?.title || 'Obra'}</p>
                   <h3 className="text-4xl font-serif italic text-white leading-none">Fin de la función.</h3>
                 </div>
               </div>
@@ -573,7 +644,7 @@ export default function App() {
                       "Ha sido una experiencia sorprendente y linda compartir esta historia contigo. Cada palabra fue escrita pensando en el eco que dejaría en tu alma."
                     </p>
                     <p className="text-muted leading-relaxed text-lg">
-                      Espero que <span className="text-white italic">El Acto</span> haya resonado en ti tanto como lo hizo en mí al crearlo. Esta historia ahora también te pertenece.
+                      Espero que <span className="text-white italic">{CATALOG_DATA.find(s => s.id === selectedStory)?.title || 'esta obra'}</span> haya resonado en ti tanto como lo hizo en mí al crearlo. Esta historia ahora también te pertenece.
                     </p>
                   </motion.div>
 
@@ -780,10 +851,21 @@ function CatalogView({
   onStorySelect,
   onAuthorClick 
 }: { 
-  onStorySelect: (id: 'el-acto' | 'hana') => void;
+  onStorySelect: (id: string) => void;
   onAuthorClick: () => void;
   key?: string | number;
 }) {
+  const [activeFilter, setActiveFilter] = useState<Genre>('Todos');
+
+  // Extract unique genres from all stories
+  const allGenres = Array.from(new Set(CATALOG_DATA.flatMap(story => story.genres)));
+  const filters: Genre[] = ['Todos', ...allGenres];
+
+  const featuredStory = CATALOG_DATA.find(s => s.isFeatured) || CATALOG_DATA[0];
+  const filteredStories = CATALOG_DATA.filter(story => 
+    activeFilter === 'Todos' || story.genres.includes(activeFilter)
+  );
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -798,78 +880,95 @@ function CatalogView({
       </div>
 
       {/* Hero Section - Featured Story */}
-      <section className="mb-24 md:mb-48">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20 items-center">
-          <div className="lg:col-span-7 relative group">
-            <motion.div 
-              initial={{ x: -20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.8 }}
-              onClick={() => onStorySelect('el-acto')}
-              className="relative aspect-[16/10] overflow-hidden rounded-2xl md:rounded-[3rem] cursor-pointer border border-white/5 group-hover:border-accent/30 transition-all duration-1000 shadow-2xl"
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
-              <img 
-                src="https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png" 
-                className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[2s] ease-out"
-                alt="El Acto"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute bottom-6 left-6 md:bottom-12 md:left-12 z-20 flex items-center gap-3 md:gap-6">
-                <span className="px-4 py-2 md:px-6 md:py-3 glass rounded-full text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] font-bold">Destacado</span>
-                <span className="px-4 py-2 md:px-6 md:py-3 glass rounded-full text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] text-accent font-bold">Disponible</span>
+      {featuredStory && (
+        <section className="mb-24 md:mb-48">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20 items-center">
+            <div className="lg:col-span-7 relative group">
+              <motion.div 
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                onClick={() => onStorySelect(featuredStory.id)}
+                className="relative aspect-[16/10] overflow-hidden rounded-2xl md:rounded-[3rem] cursor-pointer border border-white/5 group-hover:border-accent/30 transition-all duration-1000 shadow-2xl"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
+                {featuredStory.coverUrl ? (
+                  <img 
+                    src={featuredStory.coverUrl} 
+                    className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[2s] ease-out"
+                    alt={featuredStory.title}
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center">
+                    <BookOpen size={48} className="text-white/20" />
+                  </div>
+                )}
+                <div className="absolute bottom-6 left-6 md:bottom-12 md:left-12 z-20 flex items-center gap-3 md:gap-6">
+                  <span className="px-4 py-2 md:px-6 md:py-3 glass rounded-full text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] font-bold">Destacado</span>
+                  <span className="px-4 py-2 md:px-6 md:py-3 glass rounded-full text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] text-accent font-bold">{featuredStory.status}</span>
+                </div>
+              </motion.div>
+              
+              {/* Floating Decorative Text */}
+              <div className="absolute -right-12 top-1/2 -translate-y-1/2 hidden xl:block pointer-events-none">
+                <p className="writing-mode-vertical text-[11px] font-mono text-white/10 uppercase tracking-[0.8em] rotate-180">
+                  LITERATURA CONTEMPORÁNEA • 2026
+                </p>
               </div>
-            </motion.div>
-            
-            {/* Floating Decorative Text */}
-            <div className="absolute -right-12 top-1/2 -translate-y-1/2 hidden xl:block pointer-events-none">
-              <p className="writing-mode-vertical text-[11px] font-mono text-white/10 uppercase tracking-[0.8em] rotate-180">
-                LITERATURA CONTEMPORÁNEA • 2026
-              </p>
+            </div>
+
+            <div className="lg:col-span-5 space-y-8 md:space-y-12">
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="space-y-4 md:space-y-6"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="h-[1px] w-12 md:w-16 bg-accent" />
+                  <span className="text-accent font-mono text-[9px] md:text-[11px] uppercase tracking-[0.5em] font-bold">Obra Maestra</span>
+                </div>
+                <h1 className="text-6xl sm:text-8xl md:text-9xl font-serif italic font-bold tracking-tighter leading-[0.8] text-glow">
+                  {featuredStory.title.split(' ')[0]} <br />
+                  <span className="text-accent">{featuredStory.title.split(' ').slice(1).join(' ')}</span>
+                </h1>
+                <p className="text-muted text-lg md:text-xl font-light leading-relaxed max-w-md font-serif italic opacity-80">
+                  {featuredStory.description}
+                </p>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {featuredStory.genres.map(genre => (
+                    <span key={genre} className="px-3 py-1 rounded-full border border-white/10 text-[9px] font-mono uppercase tracking-widest text-muted">
+                      {genre}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="flex items-center gap-6 md:gap-10"
+              >
+                <button 
+                  onClick={() => onStorySelect(featuredStory.id)}
+                  className="px-8 py-4 md:px-12 md:py-5 bg-white text-bg font-bold rounded-full hover:bg-accent transition-all duration-500 flex items-center gap-4 group shadow-xl active:scale-95"
+                >
+                  <span className="text-[10px] md:text-xs uppercase tracking-[0.2em]">Explorar Obra</span>
+                  <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
+                </button>
+                {featuredStory.chapters && (
+                  <div className="flex flex-col border-l border-white/10 pl-6 md:pl-10">
+                    <span className="text-[9px] md:text-[11px] font-mono text-muted uppercase tracking-[0.3em]">Capítulos</span>
+                    <span className="text-2xl md:text-3xl font-serif italic font-bold">{featuredStory.chapters}</span>
+                  </div>
+                )}
+              </motion.div>
             </div>
           </div>
-
-          <div className="lg:col-span-5 space-y-8 md:space-y-12">
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="space-y-4 md:space-y-6"
-            >
-              <div className="flex items-center gap-4">
-                <div className="h-[1px] w-12 md:w-16 bg-accent" />
-                <span className="text-accent font-mono text-[9px] md:text-[11px] uppercase tracking-[0.5em] font-bold">Obra Maestra</span>
-              </div>
-              <h1 className="text-6xl sm:text-8xl md:text-9xl font-serif italic font-bold tracking-tighter leading-[0.8] text-glow">
-                El <br />
-                <span className="text-accent">Acto</span>
-              </h1>
-              <p className="text-muted text-lg md:text-xl font-light leading-relaxed max-w-md font-serif italic opacity-80">
-                "Una inmersión profunda en la psique humana a través del arte y la obsesión. La historia que definió una nueva era editorial."
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="flex items-center gap-6 md:gap-10"
-            >
-              <button 
-                onClick={() => onStorySelect('el-acto')}
-                className="px-8 py-4 md:px-12 md:py-5 bg-white text-bg font-bold rounded-full hover:bg-accent transition-all duration-500 flex items-center gap-4 group shadow-xl active:scale-95"
-              >
-                <span className="text-[10px] md:text-xs uppercase tracking-[0.2em]">Explorar Obra</span>
-                <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
-              </button>
-              <div className="flex flex-col border-l border-white/10 pl-6 md:pl-10">
-                <span className="text-[9px] md:text-[11px] font-mono text-muted uppercase tracking-[0.3em]">Capítulos</span>
-                <span className="text-2xl md:text-3xl font-serif italic font-bold">27</span>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Grid Section - Catalog */}
       <section className="mb-24 md:mb-48 space-y-12 md:space-y-20">
@@ -880,40 +979,80 @@ function CatalogView({
           </div>
           <div className="text-[9px] md:text-[11px] font-mono text-muted uppercase tracking-[0.4em] flex flex-wrap items-center gap-4 md:gap-6">
             Filtrar por: 
-            <span className="text-white cursor-pointer hover:text-accent transition-colors border-b border-accent pb-1">Todos</span>
-            <span className="cursor-pointer hover:text-white transition-colors">Novelas</span>
-            <span className="cursor-pointer hover:text-white transition-colors">Relatos</span>
+            {filters.map(filter => (
+              <span 
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={cn(
+                  "cursor-pointer transition-colors pb-1",
+                  activeFilter === filter 
+                    ? "text-white border-b border-accent" 
+                    : "hover:text-white"
+                )}
+              >
+                {filter}
+              </span>
+            ))}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
-          {/* Hana Teaser Card */}
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            onClick={() => onStorySelect('hana')}
-            className="group relative aspect-[3/4] md:aspect-[3/4.5] overflow-hidden rounded-2xl md:rounded-[3rem] cursor-pointer border border-dashed border-white/10 hover:border-accent/40 transition-all duration-1000"
-          >
-            <div className="absolute inset-0 bg-black/90 z-10 group-hover:bg-black/80 transition-colors duration-700" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-8 md:p-12 text-center space-y-6 md:space-y-8">
-              <div className="w-20 h-20 md:w-28 md:h-28 rounded-full border border-white/5 flex items-center justify-center group-hover:border-accent/40 group-hover:scale-110 transition-all duration-700 relative">
-                <div className="absolute inset-0 bg-accent/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Clock size={28} className="text-muted group-hover:text-accent transition-colors relative z-10" />
+          {filteredStories.map((story, index) => (
+            <motion.div 
+              key={story.id}
+              initial={{ y: 20, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 }}
+              onClick={() => onStorySelect(story.id)}
+              className="group relative aspect-[3/4] md:aspect-[3/4.5] overflow-hidden rounded-2xl md:rounded-[3rem] cursor-pointer border border-dashed border-white/10 hover:border-accent/40 transition-all duration-1000"
+            >
+              {story.coverUrl ? (
+                <>
+                  <div className="absolute inset-0 bg-black/60 z-10 group-hover:bg-black/40 transition-colors duration-700" />
+                  <img 
+                    src={story.coverUrl} 
+                    className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[2s] ease-out"
+                    alt={story.title}
+                    referrerPolicy="no-referrer"
+                  />
+                </>
+              ) : (
+                <div className="absolute inset-0 bg-black/90 z-10 group-hover:bg-black/80 transition-colors duration-700" />
+              )}
+              
+              <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-8 md:p-12 text-center space-y-6 md:space-y-8">
+                {!story.coverUrl && (
+                  <div className="w-20 h-20 md:w-28 md:h-28 rounded-full border border-white/5 flex items-center justify-center group-hover:border-accent/40 group-hover:scale-110 transition-all duration-700 relative">
+                    <div className="absolute inset-0 bg-accent/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <Clock size={28} className="text-muted group-hover:text-accent transition-colors relative z-10" />
+                  </div>
+                )}
+                <div className="space-y-3 md:space-y-4">
+                  <span className="text-accent font-mono text-[9px] md:text-[11px] uppercase tracking-[0.4em] font-bold">{story.status}</span>
+                  <h3 className="text-5xl md:text-6xl font-serif italic font-bold text-white/20 group-hover:text-white transition-all duration-700 leading-none tracking-tighter">{story.title}</h3>
+                  <p className="text-muted/40 text-[9px] md:text-[11px] font-mono uppercase tracking-[0.4em] group-hover:text-muted/80 transition-colors">Por {story.author}</p>
+                </div>
+                {story.releaseDate && (
+                  <div className="pt-4 md:pt-6">
+                    <p className="text-[9px] md:text-[11px] font-mono text-accent/60 uppercase tracking-[0.3em] animate-pulse font-bold">{story.releaseDate}</p>
+                  </div>
+                )}
+                <div className="flex flex-wrap justify-center gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                  {story.genres.map(genre => (
+                    <span key={genre} className="px-2 py-1 rounded border border-white/20 text-[8px] font-mono uppercase tracking-widest text-white/70">
+                      {genre}
+                    </span>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-3 md:space-y-4">
-                <span className="text-accent font-mono text-[9px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Próximamente</span>
-                <h3 className="text-5xl md:text-6xl font-serif italic font-bold text-white/20 group-hover:text-white transition-all duration-700 leading-none tracking-tighter">Hana</h3>
-                <p className="text-muted/40 text-[9px] md:text-[11px] font-mono uppercase tracking-[0.4em] group-hover:text-muted/80 transition-colors">Por Carolina</p>
-              </div>
-              <div className="pt-4 md:pt-6">
-                <p className="text-[9px] md:text-[11px] font-mono text-accent/60 uppercase tracking-[0.3em] animate-pulse font-bold">Estreno en 2 días</p>
-              </div>
-            </div>
-            <div className="absolute inset-0 flex items-center justify-center text-white/[0.01] font-serif text-[15rem] md:text-[30rem] italic leading-none select-none pointer-events-none group-hover:text-white/[0.02] transition-all duration-1000">
-              H
-            </div>
-          </motion.div>
+              {!story.coverUrl && (
+                <div className="absolute inset-0 flex items-center justify-center text-white/[0.01] font-serif text-[15rem] md:text-[30rem] italic leading-none select-none pointer-events-none group-hover:text-white/[0.02] transition-all duration-1000">
+                  {story.title.charAt(0)}
+                </div>
+              )}
+            </motion.div>
+          ))}
 
           {/* Future Collaborators Section */}
           <motion.div 
@@ -1039,7 +1178,7 @@ function HomeView({
   onAuthorMessageClick,
   onBack
 }: { 
-  storyId: 'el-acto' | 'hana';
+  storyId: string;
   onChapterClick: (c: Chapter) => void; 
   bookmarks: Record<number, number>;
   chapters: Chapter[];
@@ -1049,10 +1188,13 @@ function HomeView({
   onBack: () => void;
   key?: string | number;
 }) {
+  const storyInfo = CATALOG_DATA.find(s => s.id === storyId);
   const lastBookmarkedId = Object.keys(bookmarks).map(Number).sort((a, b) => b - a)[0];
   const lastChapter = chapters.find(c => c.id === lastBookmarkedId);
 
-  if (storyId === 'hana') {
+  if (!storyInfo) return null;
+
+  if (storyInfo.status !== 'Disponible') {
     return (
       <motion.div 
         initial={{ opacity: 0 }}
@@ -1079,11 +1221,11 @@ function HomeView({
           <div className="space-y-6">
             <div className="flex items-center justify-center gap-4">
               <div className="h-[1px] w-12 bg-accent/30" />
-              <span className="text-accent font-mono text-[10px] tracking-[0.5em] uppercase font-bold">Próximo Estreno</span>
+              <span className="text-accent font-mono text-[10px] tracking-[0.5em] uppercase font-bold">{storyInfo.status}</span>
               <div className="h-[1px] w-12 bg-accent/30" />
             </div>
-            <h1 className="text-9xl md:text-[14rem] font-serif italic font-bold tracking-tighter leading-none">Hana</h1>
-            <p className="text-muted font-mono uppercase tracking-[0.5em] text-xs">Una Obra de Carolina</p>
+            <h1 className="text-7xl md:text-[10rem] font-serif italic font-bold tracking-tighter leading-none">{storyInfo.title}</h1>
+            <p className="text-muted font-mono uppercase tracking-[0.5em] text-xs">Una Obra de {storyInfo.author}</p>
           </div>
         </div>
 
@@ -1092,7 +1234,7 @@ function HomeView({
           <div className="space-y-6">
             <h3 className="text-3xl font-serif italic font-bold">En Construcción Editorial</h3>
             <p className="text-muted leading-relaxed text-xl font-light">
-              Estamos curando meticulosamente cada palabra de este nuevo universo. El estreno oficial será en <span className="text-accent font-bold">2 días</span>.
+              Estamos curando meticulosamente cada palabra de este nuevo universo. {storyInfo.releaseDate && <span className="text-accent font-bold">{storyInfo.releaseDate}</span>}
             </p>
           </div>
           <div className="pt-6">
@@ -1126,12 +1268,18 @@ function HomeView({
           <div className="absolute -inset-6 md:-inset-12 bg-accent/5 blur-[80px] md:blur-[120px] rounded-full pointer-events-none" />
           <div className="relative group">
             <div className="absolute -inset-1 bg-gradient-to-b from-accent/20 to-transparent rounded-2xl md:rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-1000" />
-            <img 
-              src="https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png" 
-              alt="El Acto Portada" 
-              className="w-full aspect-[3/4.5] object-cover rounded-2xl md:rounded-3xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.9)] md:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.9)] relative z-10 border border-white/5 group-hover:scale-[1.01] transition-transform duration-1000"
-              referrerPolicy="no-referrer"
-            />
+            {storyInfo.coverUrl ? (
+              <img 
+                src={storyInfo.coverUrl} 
+                alt={`${storyInfo.title} Portada`} 
+                className="w-full aspect-[3/4.5] object-cover rounded-2xl md:rounded-3xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.9)] md:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.9)] relative z-10 border border-white/5 group-hover:scale-[1.01] transition-transform duration-1000"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="w-full aspect-[3/4.5] bg-zinc-900 rounded-2xl md:rounded-3xl flex items-center justify-center border border-white/5 relative z-10">
+                <BookOpen size={64} className="text-white/20" />
+              </div>
+            )}
           </div>
           
           {/* Floating Stats */}
@@ -1163,7 +1311,7 @@ function HomeView({
             </div>
             <h1 className="text-6xl sm:text-8xl md:text-[10rem] font-serif font-bold tracking-tighter leading-[0.85]">
               <ShinyText 
-                text="El Acto" 
+                text={storyInfo.title} 
                 speed={1.6} 
                 color="#ffffff" 
                 shineColor="#f27d26" 
@@ -1171,19 +1319,19 @@ function HomeView({
               />
             </h1>
             <div className="flex flex-wrap items-center gap-4 md:gap-6 text-muted font-mono text-[9px] md:text-[11px] uppercase tracking-[0.3em]">
-              <span>Escrito por Sam C.</span>
+              <span>Escrito por {storyInfo.author}</span>
               <div className="w-1 h-1 rounded-full bg-accent hidden sm:block" />
-              <span>Drama Psicológico</span>
+              <span>{storyInfo.genres.join(' • ')}</span>
             </div>
             <p className="text-muted/80 text-xl md:text-2xl leading-relaxed font-light max-w-2xl font-serif italic">
-              "Una exploración visceral de la obsesión artística, donde la línea entre el creador y la creación se desvanece en un crescendo de perfección y locura."
+              {storyInfo.description}
             </p>
           </div>
           
           <div className="grid grid-cols-3 gap-6 md:gap-12 border-y border-white/5 py-8 md:py-10">
             <div className="space-y-1 md:space-y-2">
               <span className="text-white/40 font-mono text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Capítulos</span>
-              <p className="text-xl md:text-3xl font-serif italic font-bold">{chapters.length}</p>
+              <p className="text-xl md:text-3xl font-serif italic font-bold">{storyInfo.chapters || chapters.length}</p>
             </div>
             <div className="space-y-1 md:space-y-2">
               <span className="text-white/40 font-mono text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Lectores</span>
@@ -1197,14 +1345,20 @@ function HomeView({
 
           <div className="pt-4 md:pt-8 flex flex-wrap gap-4 md:gap-6">
             <button 
-              onClick={() => onChapterClick(chapters[0])}
+              onClick={() => {
+                if (storyId === 'el-acto' && chapters.length > 0) {
+                  onChapterClick(chapters[0]);
+                } else {
+                  alert('Los capítulos de esta obra estarán disponibles próximamente.');
+                }
+              }}
               className="flex-1 sm:flex-none px-8 py-5 md:px-16 md:py-6 bg-white text-bg font-bold rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
             >
-              {lastChapter ? 'Reiniciar Lectura' : 'Comenzar Experiencia'}
+              {lastChapter && storyId === 'el-acto' ? 'Reiniciar Lectura' : 'Comenzar Experiencia'}
               <ArrowRight size={16} md:size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
             </button>
             
-            {lastChapter && (
+            {lastChapter && storyId === 'el-acto' && (
               <button 
                 onClick={() => onChapterClick(lastChapter)}
                 className="flex-1 sm:flex-none px-8 py-5 md:px-16 md:py-6 glass text-white font-bold rounded-full hover:bg-white/10 hover:scale-105 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
@@ -1222,66 +1376,87 @@ function HomeView({
       </div>
 
       {/* Chapter List - Table of Contents Style */}
-      <div className="space-y-12 md:space-y-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 border-b border-white/5 pb-8 md:pb-12">
-          <div className="space-y-3 md:space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-accent" />
-              <span className="text-accent font-mono text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Estructura</span>
+      {storyId === 'el-acto' ? (
+        <div className="space-y-12 md:space-y-20">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 border-b border-white/5 pb-8 md:pb-12">
+            <div className="space-y-3 md:space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-accent" />
+                <span className="text-accent font-mono text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Estructura</span>
+              </div>
+              <h2 className="text-4xl md:text-7xl font-serif italic font-bold tracking-tighter">Tabla de Contenidos</h2>
             </div>
-            <h2 className="text-4xl md:text-7xl font-serif italic font-bold tracking-tighter">Tabla de Contenidos</h2>
+            <p className="text-muted font-mono text-[9px] md:text-[10px] uppercase tracking-[0.4em] max-w-xs text-left md:text-right">
+              Cada capítulo es una pieza del rompecabezas emocional que conforma esta obra.
+            </p>
           </div>
-          <p className="text-muted font-mono text-[9px] md:text-[10px] uppercase tracking-[0.4em] max-w-xs text-left md:text-right">
-            Cada capítulo es una pieza del rompecabezas emocional que conforma esta obra.
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-4 md:gap-y-8">
-          {chapters.map((chapter, index) => (
-            <motion.div
-              key={chapter.id}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -10 : 10 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.05 * (index % 5) }}
-              onClick={() => !chapter.isLocked && onChapterClick(chapter)}
-              className={cn(
-                "group flex items-center justify-between py-6 md:py-8 border-b border-white/5 transition-all duration-700",
-                chapter.isLocked 
-                  ? "opacity-40 cursor-not-allowed" 
-                  : "cursor-pointer hover:border-accent/40"
-              )}
-            >
-              <div className="flex items-center gap-6 md:gap-12">
-                <span className="font-mono text-[10px] md:text-xs text-muted/40 group-hover:text-accent transition-colors duration-500 tracking-[0.3em]">
-                  {String(chapter.id).padStart(2, '0')}
-                </span>
-                <div className="space-y-1">
-                  <h3 className="text-xl md:text-2xl font-serif italic font-bold group-hover:text-white transition-colors duration-500">
-                    {chapter.title}
-                  </h3>
-                  <p className="text-[8px] md:text-[10px] font-mono text-muted/30 uppercase tracking-widest group-hover:text-muted/60 transition-colors duration-500">
-                    {chapter.isLocked ? 'Contenido Restringido' : 'Lectura Disponible'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-4 md:gap-6">
-                {chapter.isLocked ? (
-                  <Lock size={16} md:size={18} className="text-muted/30" />
-                ) : (
-                  <div className="flex items-center gap-3 md:gap-4 opacity-0 group-hover:opacity-100 transition-all duration-700 transform translate-x-4 md:translate-x-8 group-hover:translate-x-0">
-                    <span className="text-[8px] md:text-[10px] font-mono uppercase tracking-[0.3em] text-accent font-bold hidden sm:block">Explorar</span>
-                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-accent/30 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-bg transition-all duration-500">
-                      <ArrowRight size={14} md:size={16} />
-                    </div>
-                  </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-4 md:gap-y-8">
+            {chapters.map((chapter, index) => (
+              <motion.div
+                key={chapter.id}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -10 : 10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.05 * (index % 5) }}
+                onClick={() => !chapter.isLocked && onChapterClick(chapter)}
+                className={cn(
+                  "group flex items-center justify-between py-6 md:py-8 border-b border-white/5 transition-all duration-700",
+                  chapter.isLocked 
+                    ? "opacity-40 cursor-not-allowed" 
+                    : "cursor-pointer hover:border-accent/40"
                 )}
-              </div>
-            </motion.div>
-          ))}
+              >
+                <div className="flex items-center gap-6 md:gap-12">
+                  <span className="font-mono text-[10px] md:text-xs text-muted/40 group-hover:text-accent transition-colors duration-500 tracking-[0.3em]">
+                    {String(chapter.id).padStart(2, '0')}
+                  </span>
+                  <div className="space-y-1">
+                    <h3 className="text-xl md:text-2xl font-serif italic font-bold group-hover:text-white transition-colors duration-500">
+                      {chapter.title}
+                    </h3>
+                    <p className="text-[8px] md:text-[10px] font-mono text-muted/30 uppercase tracking-widest group-hover:text-muted/60 transition-colors duration-500">
+                      {chapter.isLocked ? 'Contenido Restringido' : 'Lectura Disponible'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4 md:gap-6">
+                  {chapter.isLocked ? (
+                    <Lock size={16} md:size={18} className="text-muted/30" />
+                  ) : (
+                    <div className="flex items-center gap-3 md:gap-4 opacity-0 group-hover:opacity-100 transition-all duration-700 transform translate-x-4 md:translate-x-8 group-hover:translate-x-0">
+                      <span className="text-[8px] md:text-[10px] font-mono uppercase tracking-[0.3em] text-accent font-bold hidden sm:block">Explorar</span>
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-accent/30 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-bg transition-all duration-500">
+                        <ArrowRight size={14} md:size={16} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-12 md:space-y-20">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 border-b border-white/5 pb-8 md:pb-12">
+            <div className="space-y-3 md:space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-accent" />
+                <span className="text-accent font-mono text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Estructura</span>
+              </div>
+              <h2 className="text-4xl md:text-7xl font-serif italic font-bold tracking-tighter">Tabla de Contenidos</h2>
+            </div>
+          </div>
+          <div className="glass p-12 md:p-20 rounded-3xl text-center space-y-6 border-dashed border-white/10">
+            <BookOpen size={48} className="mx-auto text-white/20" />
+            <h3 className="text-2xl font-serif italic font-bold text-white/60">Capítulos en Desarrollo</h3>
+            <p className="text-muted font-mono text-[10px] uppercase tracking-widest max-w-md mx-auto">
+              El autor está trabajando en los capítulos de esta obra. Vuelve pronto para descubrir más.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Author Note Section */}
       <motion.div 
@@ -1298,7 +1473,7 @@ function HomeView({
               <span className="text-accent font-mono text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Nota del Autor</span>
             </div>
             <h2 className="text-4xl md:text-6xl font-serif italic font-bold tracking-tighter leading-tight">
-              Un mensaje para mis lectores más fieles.
+              Un mensaje de {storyInfo.author} para sus lectores.
             </h2>
             <p className="text-muted text-lg md:text-xl leading-relaxed font-light italic">
               "Esta obra nació de la necesidad de cuestionar qué estamos dispuestos a sacrificar por nuestra pasión. Espero que encuentren en estas líneas un reflejo de sus propias búsquedas."
@@ -1314,15 +1489,15 @@ function HomeView({
           <div className="relative">
             <div className="aspect-square rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 grayscale hover:grayscale-0 transition-all duration-1000">
               <img 
-                src="https://picsum.photos/seed/writer/800/800" 
-                alt="Autor" 
+                src={`https://picsum.photos/seed/${storyInfo.author.replace(/\s+/g, '')}/800/800`} 
+                alt={storyInfo.author}
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
               />
             </div>
             <div className="absolute -bottom-4 -left-4 md:-bottom-8 -left-8 glass p-4 md:p-8 rounded-xl md:rounded-2xl border-white/10">
-              <p className="text-xl md:text-2xl font-serif italic font-bold">Sam C.</p>
-              <p className="text-[8px] md:text-[10px] font-mono text-muted uppercase tracking-widest">Director Editorial</p>
+              <p className="text-xl md:text-2xl font-serif italic font-bold">{storyInfo.author}</p>
+              <p className="text-[8px] md:text-[10px] font-mono text-muted uppercase tracking-widest">Autor</p>
             </div>
           </div>
         </div>
