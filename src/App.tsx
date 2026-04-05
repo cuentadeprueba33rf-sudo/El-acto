@@ -13,6 +13,7 @@ import {
   Bookmark,
   BookmarkCheck,
   X,
+  Menu,
   Loader2,
   Settings,
   Plus,
@@ -25,7 +26,9 @@ import {
   RotateCcw,
   Users,
   Sparkles,
-  Star
+  Star,
+  Copy,
+  FileText
 } from 'lucide-react';
 import { 
   doc, 
@@ -283,9 +286,12 @@ export default function App() {
 
   return (
     <div className={cn(
-      "min-h-screen bg-bg text-ink selection:bg-accent selection:text-bg transition-all duration-500",
+      "min-h-screen bg-bg text-ink selection:bg-accent selection:text-bg transition-all duration-500 font-sans",
       isBlurred && "blur-xl grayscale"
     )}>
+      {/* Grain Overlay */}
+      <div className="fixed inset-0 z-[1000] pointer-events-none opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
+      
       <AnimatePresence mode="wait">
         {isLoading ? (
           <LoadingScreen key="loading" onAuthorClick={handleAdminClick} />
@@ -366,23 +372,27 @@ export default function App() {
 
             <AnimatePresence mode="wait">
               {view === 'catalog' ? (
-                <CatalogView 
-                  key="catalog"
-                  onStorySelect={handleStorySelect}
-                  onAuthorClick={handleAdminClick}
-                />
+                <div key="catalog-wrapper">
+                  <Navbar onAdminClick={handleAdminClick} />
+                  <CatalogView 
+                    onStorySelect={handleStorySelect}
+                    onAuthorClick={handleAdminClick}
+                  />
+                </div>
               ) : view === 'story-detail' ? (
-                <HomeView 
-                  key="story-detail" 
-                  storyId={selectedStory!}
-                  onChapterClick={handleChapterClick} 
-                  bookmarks={bookmarks}
-                  chapters={chapters}
-                  onAuthorClick={handleAdminClick}
-                  isAdmin={isAdmin}
-                  onAuthorMessageClick={() => setShowThankYou(true)}
-                  onBack={goBack}
-                />
+                <div key="story-detail-wrapper">
+                  <Navbar onAdminClick={handleAdminClick} onBack={goBack} />
+                  <HomeView 
+                    storyId={selectedStory!}
+                    onChapterClick={handleChapterClick} 
+                    bookmarks={bookmarks}
+                    chapters={chapters}
+                    onAuthorClick={handleAdminClick}
+                    isAdmin={isAdmin}
+                    onAuthorMessageClick={() => setShowThankYou(true)}
+                    onBack={goBack}
+                  />
+                </div>
               ) : view === 'reading' ? (
                 <ReadingView 
                   key="reading" 
@@ -688,6 +698,84 @@ function LoadingScreen(_props: { key?: string | number; onAuthorClick?: () => vo
   );
 }
 
+function Navbar({ onAdminClick, onBack }: { onAdminClick: () => void; onBack?: () => void }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  return (
+    <>
+      <motion.nav 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="fixed top-0 left-0 right-0 h-20 md:h-24 z-50 flex items-center justify-between px-6 md:px-16 backdrop-blur-md border-b border-white/5"
+      >
+        <div className="flex items-center gap-4 md:gap-12">
+          {onBack && (
+            <button 
+              onClick={onBack}
+              className="p-2 md:p-3 hover:bg-white/5 rounded-full transition-colors group"
+            >
+              <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            </button>
+          )}
+          <div className="flex flex-col group cursor-pointer" onClick={onBack}>
+            <span className="text-xl md:text-2xl font-serif italic font-bold tracking-tighter leading-none group-hover:text-accent transition-colors">SAM C.</span>
+            <span className="text-[8px] md:text-[9px] font-mono uppercase tracking-[0.5em] text-accent font-bold">Editorial</span>
+          </div>
+        </div>
+
+        <div className="hidden lg:flex items-center gap-16 text-[11px] font-mono uppercase tracking-[0.4em] text-muted">
+          <button className="hover:text-white transition-colors relative group">
+            Colección
+            <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-accent transition-all group-hover:w-full" />
+          </button>
+          <button className="hover:text-white transition-colors relative group">
+            Autores
+            <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-accent transition-all group-hover:w-full" />
+          </button>
+          <button className="hover:text-white transition-colors relative group">
+            Sobre Nosotros
+            <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-accent transition-all group-hover:w-full" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 md:gap-6">
+          <button 
+            onClick={onAdminClick}
+            className="p-2 md:p-3 hover:bg-white/5 rounded-full transition-colors text-muted hover:text-accent"
+          >
+            <Settings size={20} />
+          </button>
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="lg:hidden p-2 hover:bg-white/5 rounded-full transition-colors text-muted hover:text-white"
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+      </motion.nav>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-40 bg-bg/95 backdrop-blur-xl pt-32 px-8 lg:hidden"
+          >
+            <div className="flex flex-col gap-12 text-center">
+              <button onClick={() => setIsMenuOpen(false)} className="text-2xl font-serif italic font-bold hover:text-accent transition-colors">Colección</button>
+              <button onClick={() => setIsMenuOpen(false)} className="text-2xl font-serif italic font-bold hover:text-accent transition-colors">Autores</button>
+              <button onClick={() => setIsMenuOpen(false)} className="text-2xl font-serif italic font-bold hover:text-accent transition-colors">Sobre Nosotros</button>
+              <div className="h-[1px] w-12 bg-accent/30 mx-auto" />
+              <p className="text-[10px] font-mono uppercase tracking-[0.5em] text-muted">© 2026 SAM C. EDITORIAL</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
 function CatalogView({ 
   onStorySelect,
   onAuthorClick 
@@ -701,198 +789,242 @@ function CatalogView({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen pt-24 pb-12 px-6 max-w-7xl mx-auto relative overflow-hidden"
+      className="min-h-screen pt-24 md:pt-40 pb-20 md:pb-32 px-6 md:px-8 max-w-[1400px] mx-auto relative"
     >
       {/* Background Decorative Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/5 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-accent/5 blur-[160px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-accent/5 blur-[160px] rounded-full animate-pulse" style={{ animationDelay: '3s' }} />
       </div>
 
-      {/* Catalog Header */}
-      <header className="mb-24 text-center space-y-6">
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="inline-flex items-center gap-3 px-4 py-2 glass rounded-full border-accent/30"
-        >
-          <Sparkles size={14} className="text-accent animate-pulse" />
-          <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-accent font-bold">Catálogo en Construcción</span>
-        </motion.div>
-        
-        <h1 className="text-7xl md:text-9xl font-serif italic font-bold tracking-tighter leading-none">
-          SAM C. <br />
-          <span className="text-white/20">Colección</span>
-        </h1>
-        
-        <p className="text-muted max-w-2xl mx-auto text-lg font-light leading-relaxed">
-          Un espacio editorial dedicado a historias que desafían la realidad. <br />
-          Explora el universo literario de SAM C. y sus colaboradores.
-        </p>
-      </header>
-
-      {/* Stories Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-32">
-        {/* El Acto Story Card */}
-        <motion.div 
-          initial={{ x: -50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          onClick={() => onStorySelect('el-acto')}
-          className="group relative aspect-[16/10] overflow-hidden rounded-[3rem] cursor-pointer border border-white/5 hover:border-accent/40 transition-all duration-700"
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
-          <img 
-            src="https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png" 
-            className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-1000"
-            alt="El Acto"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 p-12 flex flex-col justify-end z-20">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-[1px] w-8 bg-accent" />
-                <span className="text-accent font-mono text-[10px] uppercase tracking-[0.3em] font-bold">Disponible Ahora</span>
+      {/* Hero Section - Featured Story */}
+      <section className="mb-24 md:mb-48">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20 items-center">
+          <div className="lg:col-span-7 relative group">
+            <motion.div 
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              onClick={() => onStorySelect('el-acto')}
+              className="relative aspect-[16/10] overflow-hidden rounded-2xl md:rounded-[3rem] cursor-pointer border border-white/5 group-hover:border-accent/30 transition-all duration-1000 shadow-2xl"
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
+              <img 
+                src="https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png" 
+                className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[2s] ease-out"
+                alt="El Acto"
+                referrerPolicy="no-referrer"
+              />
+              <div className="absolute bottom-6 left-6 md:bottom-12 md:left-12 z-20 flex items-center gap-3 md:gap-6">
+                <span className="px-4 py-2 md:px-6 md:py-3 glass rounded-full text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] font-bold">Destacado</span>
+                <span className="px-4 py-2 md:px-6 md:py-3 glass rounded-full text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] text-accent font-bold">Disponible</span>
               </div>
-              <h2 className="text-6xl font-serif italic font-bold text-white leading-none">El Acto</h2>
-              <p className="text-muted text-sm max-w-md opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                Una historia que desafía la percepción, donde cada cuerda vibrante cuenta un secreto.
+            </motion.div>
+            
+            {/* Floating Decorative Text */}
+            <div className="absolute -right-12 top-1/2 -translate-y-1/2 hidden xl:block pointer-events-none">
+              <p className="writing-mode-vertical text-[11px] font-mono text-white/10 uppercase tracking-[0.8em] rotate-180">
+                LITERATURA CONTEMPORÁNEA • 2026
               </p>
-              <div className="pt-4 flex items-center gap-4">
-                <span className="px-4 py-2 glass rounded-full text-[10px] font-mono uppercase tracking-widest">27 Capítulos</span>
-                <div className="w-10 h-10 rounded-full bg-accent text-bg flex items-center justify-center transform translate-x-[-20px] opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500">
-                  <ArrowRight size={20} />
-                </div>
-              </div>
             </div>
           </div>
-        </motion.div>
 
-        {/* Hana Story Card */}
-        <motion.div 
-          initial={{ x: 50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          onClick={() => onStorySelect('hana')}
-          className="group relative aspect-[16/10] overflow-hidden rounded-[3rem] cursor-pointer border border-dashed border-white/10 hover:border-accent/40 transition-all duration-700"
-        >
-          <div className="absolute inset-0 bg-black/60 z-10" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-12 text-center space-y-6">
-            <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500">
-              <Clock size={32} className="text-muted group-hover:text-accent transition-colors" />
-            </div>
-            <div className="space-y-2">
-              <span className="text-accent font-mono text-[10px] uppercase tracking-[0.3em] font-bold">Próximamente</span>
-              <h2 className="text-6xl font-serif italic font-bold text-white/40 group-hover:text-white transition-colors leading-none">Hana</h2>
-              <p className="text-muted/50 text-sm font-mono uppercase tracking-widest">Por Carolina</p>
-            </div>
-            <div className="pt-4">
-              <p className="text-xs font-mono text-accent/60 uppercase tracking-[0.2em]">Faltan 2 días para el estreno</p>
-            </div>
-          </div>
-          {/* Decorative Background Initial */}
-          <div className="absolute inset-0 flex items-center justify-center text-white/[0.02] font-serif text-[20rem] italic leading-none select-none pointer-events-none">
-            H
-          </div>
-        </motion.div>
-      </div>
+          <div className="lg:col-span-5 space-y-8 md:space-y-12">
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="space-y-4 md:space-y-6"
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-[1px] w-12 md:w-16 bg-accent" />
+                <span className="text-accent font-mono text-[9px] md:text-[11px] uppercase tracking-[0.5em] font-bold">Obra Maestra</span>
+              </div>
+              <h1 className="text-6xl sm:text-8xl md:text-9xl font-serif italic font-bold tracking-tighter leading-[0.8] text-glow">
+                El <br />
+                <span className="text-accent">Acto</span>
+              </h1>
+              <p className="text-muted text-lg md:text-xl font-light leading-relaxed max-w-md font-serif italic opacity-80">
+                "Una inmersión profunda en la psique humana a través del arte y la obsesión. La historia que definió una nueva era editorial."
+              </p>
+            </motion.div>
 
-      {/* Future Collaborators Section */}
-      <motion.div 
-        initial={{ y: 30, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true }}
-        className="mb-32 space-y-12"
-      >
-        <div className="flex items-center justify-center gap-3">
-          <div className="p-2 bg-accent/10 rounded-lg text-accent">
-            <Users size={20} />
-          </div>
-          <h2 className="text-4xl font-serif italic">Futuros Colaboradores</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Carolina Card */}
-          <div className="group relative aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-zinc-900/50 border border-white/5 hover:border-accent/40 transition-all duration-700">
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
-            <div className="absolute inset-0 bg-accent/5 group-hover:bg-accent/10 transition-colors duration-700" />
-            <div className="absolute inset-0 p-10 flex flex-col justify-end z-20">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="h-[1px] w-8 bg-accent" />
-                  <span className="text-accent font-mono text-[10px] uppercase tracking-[0.3em] font-bold">Autora Invitada</span>
-                </div>
-                <h3 className="text-5xl font-serif italic font-bold text-white group-hover:text-accent transition-colors duration-500 leading-none">Carolina</h3>
-                <div className="pt-6 border-t border-white/10 space-y-1">
-                  <p className="text-[10px] font-mono text-muted uppercase tracking-[0.2em]">Obra en camino</p>
-                  <p className="text-2xl font-serif text-white/90 italic">"Hana"</p>
-                </div>
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="flex items-center gap-6 md:gap-10"
+            >
+              <button 
+                onClick={() => onStorySelect('el-acto')}
+                className="px-8 py-4 md:px-12 md:py-5 bg-white text-bg font-bold rounded-full hover:bg-accent transition-all duration-500 flex items-center gap-4 group shadow-xl active:scale-95"
+              >
+                <span className="text-[10px] md:text-xs uppercase tracking-[0.2em]">Explorar Obra</span>
+                <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
+              </button>
+              <div className="flex flex-col border-l border-white/10 pl-6 md:pl-10">
+                <span className="text-[9px] md:text-[11px] font-mono text-muted uppercase tracking-[0.3em]">Capítulos</span>
+                <span className="text-2xl md:text-3xl font-serif italic font-bold">27</span>
               </div>
-            </div>
-            <div className="absolute top-10 right-10 text-white/5 font-serif text-[10rem] italic leading-none select-none group-hover:text-accent/10 transition-colors duration-700">H</div>
-          </div>
-          
-          {/* Add Your Story Card */}
-          <div className="group relative aspect-[4/5] overflow-hidden rounded-[2.5rem] border border-dashed border-white/10 hover:border-accent/40 transition-all duration-700 flex flex-col items-center justify-center text-center p-10">
-            <div className="absolute inset-0 bg-white/[0.02] group-hover:bg-accent/[0.02] transition-colors" />
-            <div className="relative z-10 space-y-6">
-              <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center mx-auto group-hover:border-accent/40 group-hover:scale-110 transition-all duration-500 bg-black/40 backdrop-blur-sm">
-                <Plus size={32} className="text-muted group-hover:text-accent transition-colors" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-serif italic text-muted group-hover:text-white transition-colors">Tu Historia Aquí</h3>
-                <p className="text-[10px] font-mono text-muted/50 uppercase tracking-[0.3em]">Únete al colectivo de SAM C.</p>
-              </div>
-            </div>
+            </motion.div>
           </div>
         </div>
-      </motion.div>
+      </section>
 
-      {/* Iconic Characters Section */}
-      <motion.div 
-        initial={{ y: 30, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        viewport={{ once: true }}
-        className="mb-32 space-y-12"
-      >
-        <div className="flex items-center justify-center gap-3">
-          <div className="p-2 bg-accent/10 rounded-lg text-accent">
-            <Star size={20} />
+      {/* Grid Section - Catalog */}
+      <section className="mb-24 md:mb-48 space-y-12 md:space-y-20">
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 pb-10 gap-8">
+          <div className="space-y-4">
+            <span className="text-accent font-mono text-[9px] md:text-[11px] uppercase tracking-[0.5em] font-bold">Curaduría</span>
+            <h2 className="text-4xl md:text-6xl font-serif italic font-bold tracking-tighter">Catálogo</h2>
           </div>
-          <h2 className="text-4xl font-serif italic">Personajes Icónicos</h2>
+          <div className="text-[9px] md:text-[11px] font-mono text-muted uppercase tracking-[0.4em] flex flex-wrap items-center gap-4 md:gap-6">
+            Filtrar por: 
+            <span className="text-white cursor-pointer hover:text-accent transition-colors border-b border-accent pb-1">Todos</span>
+            <span className="cursor-pointer hover:text-white transition-colors">Novelas</span>
+            <span className="cursor-pointer hover:text-white transition-colors">Relatos</span>
+          </div>
         </div>
 
-        <div className="relative group max-w-4xl mx-auto">
-          <div className="absolute inset-0 bg-accent/5 blur-3xl rounded-full opacity-50" />
-          <div className="relative glass p-12 rounded-[40px] border-white/5 border-dashed text-center space-y-4">
-            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto text-accent/40 animate-pulse">
-              <Sparkles size={32} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+          {/* Hana Teaser Card */}
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            onClick={() => onStorySelect('hana')}
+            className="group relative aspect-[3/4] md:aspect-[3/4.5] overflow-hidden rounded-2xl md:rounded-[3rem] cursor-pointer border border-dashed border-white/10 hover:border-accent/40 transition-all duration-1000"
+          >
+            <div className="absolute inset-0 bg-black/90 z-10 group-hover:bg-black/80 transition-colors duration-700" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-8 md:p-12 text-center space-y-6 md:space-y-8">
+              <div className="w-20 h-20 md:w-28 md:h-28 rounded-full border border-white/5 flex items-center justify-center group-hover:border-accent/40 group-hover:scale-110 transition-all duration-700 relative">
+                <div className="absolute inset-0 bg-accent/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Clock size={28} className="text-muted group-hover:text-accent transition-colors relative z-10" />
+              </div>
+              <div className="space-y-3 md:space-y-4">
+                <span className="text-accent font-mono text-[9px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Próximamente</span>
+                <h3 className="text-5xl md:text-6xl font-serif italic font-bold text-white/20 group-hover:text-white transition-all duration-700 leading-none tracking-tighter">Hana</h3>
+                <p className="text-muted/40 text-[9px] md:text-[11px] font-mono uppercase tracking-[0.4em] group-hover:text-muted/80 transition-colors">Por Carolina</p>
+              </div>
+              <div className="pt-4 md:pt-6">
+                <p className="text-[9px] md:text-[11px] font-mono text-accent/60 uppercase tracking-[0.3em] animate-pulse font-bold">Estreno en 2 días</p>
+              </div>
             </div>
-            <h3 className="text-3xl font-serif italic text-white/40">Muy Pronto</h3>
-            <p className="text-muted/40 max-w-sm mx-auto text-sm">
-              Estamos preparando una galería interactiva con los perfiles y secretos de los personajes que dan vida a este universo.
-            </p>
-          </div>
+            <div className="absolute inset-0 flex items-center justify-center text-white/[0.01] font-serif text-[15rem] md:text-[30rem] italic leading-none select-none pointer-events-none group-hover:text-white/[0.02] transition-all duration-1000">
+              H
+            </div>
+          </motion.div>
+
+          {/* Future Collaborators Section */}
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            className="group relative aspect-[3/4] md:aspect-[3/4.5] overflow-hidden rounded-2xl md:rounded-[3rem] bg-zinc-900/20 border border-white/5 hover:border-accent/30 transition-all duration-1000 p-8 md:p-16 flex flex-col justify-between"
+          >
+            <div className="space-y-6 md:space-y-8">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-accent/10 rounded-xl md:rounded-2xl text-accent flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                <Users size={24} />
+              </div>
+              <div className="space-y-3 md:space-y-4">
+                <h3 className="text-3xl md:text-4xl font-serif italic font-bold text-white">Colaboradores</h3>
+                <p className="text-muted text-base md:text-lg leading-relaxed font-light font-serif italic">
+                  "Buscamos voces únicas que deseen desafiar los límites de la narrativa convencional."
+                </p>
+              </div>
+            </div>
+            <div className="space-y-6 md:space-y-8">
+              <div className="flex -space-x-4 md:-space-x-5">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-bg bg-zinc-800 flex items-center justify-center text-[9px] md:text-[11px] font-mono shadow-xl">
+                    {i === 1 ? 'C' : i === 2 ? 'S' : i === 3 ? 'A' : '+'}
+                  </div>
+                ))}
+              </div>
+              <button className="w-full py-4 md:py-5 glass rounded-full text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] hover:bg-white/5 transition-all duration-500 hover:text-accent">
+                Unirse al Colectivo
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Iconic Characters Section */}
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            className="group relative aspect-[3/4] md:aspect-[3/4.5] overflow-hidden rounded-2xl md:rounded-[3rem] bg-zinc-900/20 border border-white/5 hover:border-accent/30 transition-all duration-1000 p-8 md:p-16 flex flex-col justify-between"
+          >
+            <div className="space-y-6 md:space-y-8">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-accent/10 rounded-xl md:rounded-2xl text-accent flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                <Star size={24} />
+              </div>
+              <div className="space-y-3 md:space-y-4">
+                <h3 className="text-3xl md:text-4xl font-serif italic font-bold text-white">Personajes</h3>
+                <p className="text-muted text-base md:text-lg leading-relaxed font-light font-serif italic">
+                  "Explora los secretos y perfiles de las figuras más icónicas de nuestras historias."
+                </p>
+              </div>
+            </div>
+            <div className="relative glass p-6 md:p-8 rounded-2xl md:rounded-3xl border-dashed border-white/10 text-center group-hover:border-accent/40 transition-colors">
+              <span className="text-[9px] md:text-[11px] font-mono uppercase tracking-[0.4em] text-accent animate-pulse font-bold">Muy Pronto</span>
+            </div>
+          </motion.div>
         </div>
-      </motion.div>
+      </section>
 
       {/* Catalog Footer */}
-      <footer className="pt-12 border-t border-white/5 text-center space-y-6">
-        <div className="flex justify-center gap-8 text-muted">
-          <button className="hover:text-accent transition-colors flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest">
-            <Share2 size={14} /> Compartir
-          </button>
-          <button className="hover:text-accent transition-colors flex items-center gap-2 text-[10px] font-mono uppercase tracking-widest">
-            <Heart size={14} /> Favoritos
-          </button>
+      <footer className="pt-20 md:pt-32 border-t border-white/5 flex flex-col lg:flex-row justify-between items-start gap-16 md:gap-20">
+        <div className="space-y-6 md:space-y-8 max-w-md">
+          <div className="flex flex-col">
+            <span className="text-3xl md:text-4xl font-serif italic font-bold tracking-tighter leading-none">SAM C.</span>
+            <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-[0.6em] text-accent font-bold">Editorial</span>
+          </div>
+          <p className="text-sm font-serif italic text-muted leading-relaxed opacity-70">
+            "Dedicados a la excelencia narrativa y la innovación visual. Creando puentes entre la imaginación y la realidad a través de la palabra escrita."
+          </p>
+          <div className="flex gap-4 md:gap-6">
+            <button className="p-3 md:p-4 glass rounded-full hover:text-accent transition-all duration-500 hover:scale-110"><Share2 size={18} /></button>
+            <button className="p-3 md:p-4 glass rounded-full hover:text-accent transition-all duration-500 hover:scale-110"><Heart size={18} /></button>
+          </div>
         </div>
-        <p 
-          className="text-[10px] font-mono text-muted/30 tracking-[0.4em] uppercase cursor-pointer hover:text-accent transition-colors"
-          onClick={onAuthorClick}
-        >
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 md:gap-20 w-full lg:w-auto">
+          <div className="space-y-4 md:space-y-6">
+            <span className="text-white font-mono text-[10px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Explorar</span>
+            <div className="flex flex-col gap-3 md:gap-4 text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] text-muted">
+              <button className="hover:text-accent transition-colors text-left">Catálogo</button>
+              <button className="hover:text-accent transition-colors text-left">Autores</button>
+              <button className="hover:text-accent transition-colors text-left">Novedades</button>
+            </div>
+          </div>
+          <div className="space-y-4 md:space-y-6">
+            <span className="text-white font-mono text-[10px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Legal</span>
+            <div className="flex flex-col gap-3 md:gap-4 text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] text-muted">
+              <button className="hover:text-accent transition-colors text-left">Privacidad</button>
+              <button className="hover:text-accent transition-colors text-left">Términos</button>
+              <button className="hover:text-accent transition-colors text-left">Cookies</button>
+            </div>
+          </div>
+          <div className="space-y-4 md:space-y-6">
+            <span className="text-white font-mono text-[10px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Social</span>
+            <div className="flex flex-col gap-3 md:gap-4 text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] text-muted">
+              <button className="hover:text-accent transition-colors text-left">Instagram</button>
+              <button className="hover:text-accent transition-colors text-left">Twitter</button>
+              <button className="hover:text-accent transition-colors text-left">LinkedIn</button>
+            </div>
+          </div>
+        </div>
+      </footer>
+      
+      <div className="mt-20 md:mt-32 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+        <p className="text-[8px] md:text-[10px] font-mono text-muted/30 tracking-[0.5em] uppercase text-center md:text-left">
           © 2026 SAM C. EDITORIAL • TODOS LOS DERECHOS RESERVADOS
         </p>
-      </footer>
+        <div className="flex items-center gap-4">
+          <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-accent animate-pulse" />
+          <span className="text-[8px] md:text-[10px] font-mono text-accent uppercase tracking-widest">En Línea</span>
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -926,40 +1058,47 @@ function HomeView({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-12"
+        className="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-16 pt-32 relative overflow-hidden"
       >
-        <button 
-          onClick={onBack}
-          className="fixed top-12 left-12 p-4 glass rounded-full hover:bg-white/10 transition-colors z-50"
-        >
-          <ChevronLeft size={24} />
-        </button>
+        {/* Atmospheric Background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-accent/5 blur-[120px] rounded-full animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-white/5 blur-[100px] rounded-full animate-pulse delay-700" />
+        </div>
 
-        <div className="space-y-6">
+        <div className="space-y-12 relative z-10">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-32 h-32 bg-accent/10 rounded-full flex items-center justify-center mx-auto text-accent"
+            className="w-48 h-48 bg-accent/5 rounded-full flex items-center justify-center mx-auto text-accent border border-accent/10 relative group"
           >
-            <Clock size={48} className="animate-pulse" />
+            <div className="absolute inset-0 bg-accent/10 blur-3xl rounded-full group-hover:bg-accent/20 transition-colors duration-1000" />
+            <Clock size={72} className="relative z-10 animate-pulse" />
           </motion.div>
           
-          <div className="space-y-2">
-            <span className="text-accent font-mono text-xs tracking-[0.4em] uppercase font-bold">Próximo Estreno</span>
-            <h1 className="text-7xl md:text-9xl font-serif italic font-bold tracking-tighter">Hana</h1>
-            <p className="text-muted font-mono uppercase tracking-widest">Por Carolina</p>
+          <div className="space-y-6">
+            <div className="flex items-center justify-center gap-4">
+              <div className="h-[1px] w-12 bg-accent/30" />
+              <span className="text-accent font-mono text-[10px] tracking-[0.5em] uppercase font-bold">Próximo Estreno</span>
+              <div className="h-[1px] w-12 bg-accent/30" />
+            </div>
+            <h1 className="text-9xl md:text-[14rem] font-serif italic font-bold tracking-tighter leading-none">Hana</h1>
+            <p className="text-muted font-mono uppercase tracking-[0.5em] text-xs">Una Obra de Carolina</p>
           </div>
         </div>
 
-        <div className="max-w-md glass p-8 rounded-[2rem] border-accent/30 space-y-4">
-          <h3 className="text-xl font-bold">Obra en Construcción</h3>
-          <p className="text-muted leading-relaxed">
-            Estamos preparando los últimos detalles para el lanzamiento de esta nueva historia. Vuelve en <span className="text-accent font-bold">2 días</span> para descubrir el universo de Hana.
-          </p>
-          <div className="pt-4">
+        <div className="max-w-2xl glass p-16 rounded-[4rem] border-accent/10 space-y-10 relative overflow-hidden group hover:border-accent/30 transition-colors duration-700">
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+          <div className="space-y-6">
+            <h3 className="text-3xl font-serif italic font-bold">En Construcción Editorial</h3>
+            <p className="text-muted leading-relaxed text-xl font-light">
+              Estamos curando meticulosamente cada palabra de este nuevo universo. El estreno oficial será en <span className="text-accent font-bold">2 días</span>.
+            </p>
+          </div>
+          <div className="pt-6">
             <button 
               onClick={onBack}
-              className="px-8 py-3 bg-accent text-bg font-bold rounded-full hover:bg-accent/80 transition-colors"
+              className="px-16 py-5 bg-white text-bg font-bold rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 uppercase tracking-[0.2em] text-[10px]"
             >
               Volver al Catálogo
             </button>
@@ -974,50 +1113,55 @@ function HomeView({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="max-w-4xl mx-auto px-6 py-12 md:py-24"
+      className="max-w-7xl mx-auto px-6 pt-24 md:pt-40 pb-20 md:pb-32"
     >
-      {/* Back to Catalog */}
-      <button 
-        onClick={onBack}
-        className="fixed top-12 left-12 p-4 glass rounded-full hover:bg-white/10 transition-colors z-50 hidden lg:flex items-center gap-2 group"
-      >
-        <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-        <span className="text-[10px] font-mono uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Catálogo</span>
-      </button>
-
-      <button 
-        onClick={onBack}
-        className="lg:hidden mb-12 flex items-center gap-2 text-muted hover:text-accent transition-colors"
-      >
-        <ChevronLeft size={20} />
-        <span className="text-xs font-mono uppercase tracking-widest">Volver al Catálogo</span>
-      </button>
-      {/* Hero Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-24">
+      {/* Hero Section - Split Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-24 items-start mb-24 md:mb-48">
         <motion.div 
-          initial={{ x: -50, opacity: 0 }}
+          initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="relative group"
+          transition={{ delay: 0.2, duration: 0.8 }}
+          className="lg:col-span-5 relative order-2 lg:order-1"
         >
-          <div className="absolute -inset-4 bg-accent/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-          <img 
-            src="https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png" 
-            alt="El Acto Portada" 
-            className="w-full aspect-[2/3] object-cover rounded-lg shadow-2xl relative z-10 border border-white/10"
-            referrerPolicy="no-referrer"
-          />
+          <div className="absolute -inset-6 md:-inset-12 bg-accent/5 blur-[80px] md:blur-[120px] rounded-full pointer-events-none" />
+          <div className="relative group">
+            <div className="absolute -inset-1 bg-gradient-to-b from-accent/20 to-transparent rounded-2xl md:rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-1000" />
+            <img 
+              src="https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png" 
+              alt="El Acto Portada" 
+              className="w-full aspect-[3/4.5] object-cover rounded-2xl md:rounded-3xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.9)] md:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.9)] relative z-10 border border-white/5 group-hover:scale-[1.01] transition-transform duration-1000"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          
+          {/* Floating Stats */}
+          <div className="absolute -bottom-6 -right-6 md:-bottom-12 md:-right-12 glass p-4 md:p-8 rounded-2xl md:rounded-3xl border-white/10 z-20 hidden sm:block animate-float">
+            <div className="space-y-2 md:space-y-4">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+                  <BookOpen size={16} md:size={18} />
+                </div>
+                <div>
+                  <p className="text-[8px] md:text-[10px] font-mono text-muted uppercase tracking-widest">Volumen</p>
+                  <p className="text-sm md:text-lg font-serif italic font-bold">Completo</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         <motion.div 
-          initial={{ x: 50, opacity: 0 }}
+          initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="space-y-6"
+          transition={{ delay: 0.3, duration: 0.8 }}
+          className="lg:col-span-7 space-y-8 md:space-y-12 pt-0 lg:pt-12 order-1 lg:order-2"
         >
-          <div className="space-y-2">
-            <span className="text-accent font-mono text-xs tracking-widest uppercase">Novela Original</span>
-            <h1 className="text-6xl md:text-8xl font-serif font-bold tracking-tighter leading-none">
+          <div className="space-y-6 md:space-y-8">
+            <div className="flex items-center gap-4">
+              <div className="h-[1px] w-12 md:w-16 bg-accent" />
+              <span className="text-accent font-mono text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Colección Original</span>
+            </div>
+            <h1 className="text-6xl sm:text-8xl md:text-[10rem] font-serif font-bold tracking-tighter leading-[0.85]">
               <ShinyText 
                 text="El Acto" 
                 speed={1.6} 
@@ -1026,139 +1170,180 @@ function HomeView({
                 spread={120}
               />
             </h1>
+            <div className="flex flex-wrap items-center gap-4 md:gap-6 text-muted font-mono text-[9px] md:text-[11px] uppercase tracking-[0.3em]">
+              <span>Escrito por Sam C.</span>
+              <div className="w-1 h-1 rounded-full bg-accent hidden sm:block" />
+              <span>Drama Psicológico</span>
+            </div>
+            <p className="text-muted/80 text-xl md:text-2xl leading-relaxed font-light max-w-2xl font-serif italic">
+              "Una exploración visceral de la obsesión artística, donde la línea entre el creador y la creación se desvanece en un crescendo de perfección y locura."
+            </p>
           </div>
           
-          <p className="text-muted text-lg leading-relaxed font-light">
-            Una historia que desafía la percepción, donde cada cuerda vibrante cuenta un secreto y cada ensayo es un paso hacia el abismo de la perfección.
-          </p>
-
-          <div className="flex items-center gap-6 text-sm font-mono text-muted">
-            <div className="flex items-center gap-2">
-              <BookOpen size={16} className="text-accent" />
-              <span>{chapters.length} Capítulos</span>
+          <div className="grid grid-cols-3 gap-6 md:gap-12 border-y border-white/5 py-8 md:py-10">
+            <div className="space-y-1 md:space-y-2">
+              <span className="text-white/40 font-mono text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Capítulos</span>
+              <p className="text-xl md:text-3xl font-serif italic font-bold">{chapters.length}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Heart size={16} className="text-accent" />
-              <span>1.2k Lecturas</span>
+            <div className="space-y-1 md:space-y-2">
+              <span className="text-white/40 font-mono text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Lectores</span>
+              <p className="text-xl md:text-3xl font-serif italic font-bold">1.2k+</p>
+            </div>
+            <div className="space-y-1 md:space-y-2">
+              <span className="text-white/40 font-mono text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Calificación</span>
+              <p className="text-xl md:text-3xl font-serif italic font-bold">4.9/5</p>
             </div>
           </div>
 
-          <div className="pt-6 flex flex-wrap gap-4">
+          <div className="pt-4 md:pt-8 flex flex-wrap gap-4 md:gap-6">
             <button 
               onClick={() => onChapterClick(chapters[0])}
-              className="px-8 py-4 bg-ink text-bg font-bold rounded-full hover:bg-accent transition-colors duration-300 flex items-center gap-2 group"
+              className="flex-1 sm:flex-none px-8 py-5 md:px-16 md:py-6 bg-white text-bg font-bold rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
             >
-              {lastChapter ? 'Reiniciar Lectura' : 'Empezar a Leer'}
-              <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              {lastChapter ? 'Reiniciar Lectura' : 'Comenzar Experiencia'}
+              <ArrowRight size={16} md:size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
             </button>
             
             {lastChapter && (
               <button 
                 onClick={() => onChapterClick(lastChapter)}
-                className="px-8 py-4 glass text-ink font-bold rounded-full hover:bg-white/10 transition-colors duration-300 flex items-center gap-2 group"
+                className="flex-1 sm:flex-none px-8 py-5 md:px-16 md:py-6 glass text-white font-bold rounded-full hover:bg-white/10 hover:scale-105 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
               >
-                Continuar: Cap {lastChapter.id}
-                <Bookmark size={18} className="text-accent" />
+                Continuar Cap. {lastChapter.id}
+                <Bookmark size={16} md:size={18} className="text-accent group-hover:scale-125 transition-transform duration-500" />
               </button>
             )}
 
-            <button className="p-4 glass rounded-full hover:bg-white/10 transition-colors">
-              <Share2 size={20} />
+            <button className="p-5 md:p-6 glass rounded-full hover:bg-white/10 hover:scale-110 transition-all duration-500 text-muted hover:text-white">
+              <Share2 size={20} md:size={22} />
             </button>
           </div>
         </motion.div>
       </div>
 
-      {/* Release Note */}
-      <motion.div 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="mb-16 p-6 glass rounded-2xl border-accent/30 flex items-start gap-4"
-      >
-        <div className="p-3 bg-accent/10 rounded-xl text-accent">
-          <Clock size={24} />
-        </div>
-        <div>
-          <h3 className="font-bold text-lg mb-1 text-accent">Próxima Evolución</h3>
-          <p className="text-muted leading-snug">
-            Esta plataforma pronto se convertirá en un <span className="text-white font-bold">catálogo completo</span> con nuevos estrenos exclusivos de <span className="text-accent font-bold">SAM C.</span> ¡Prepárate, faltan solo <span className="text-white font-bold">2 días</span>!
+      {/* Chapter List - Table of Contents Style */}
+      <div className="space-y-12 md:space-y-20">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 border-b border-white/5 pb-8 md:pb-12">
+          <div className="space-y-3 md:space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-accent" />
+              <span className="text-accent font-mono text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Estructura</span>
+            </div>
+            <h2 className="text-4xl md:text-7xl font-serif italic font-bold tracking-tighter">Tabla de Contenidos</h2>
+          </div>
+          <p className="text-muted font-mono text-[9px] md:text-[10px] uppercase tracking-[0.4em] max-w-xs text-left md:text-right">
+            Cada capítulo es una pieza del rompecabezas emocional que conforma esta obra.
           </p>
         </div>
-      </motion.div>
-
-      {/* Chapter List */}
-      <div className="space-y-4 pb-24">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-serif italic">Índice de Capítulos</h2>
-          <div className="flex items-center gap-4">
-            {isAdmin && (
-              <button 
-                onClick={onAuthorClick}
-                className="p-2 glass rounded-lg text-accent hover:bg-accent/10 transition-colors"
-                title="Panel de Control"
-              >
-                <Settings size={20} />
-              </button>
-            )}
-            <List size={20} className="text-muted" />
-          </div>
-        </div>
         
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-4 md:gap-y-8">
           {chapters.map((chapter, index) => (
             <motion.div
               key={chapter.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * (index % 10) }}
-              onClick={() => onChapterClick(chapter)}
+              initial={{ opacity: 0, x: index % 2 === 0 ? -10 : 10 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.05 * (index % 5) }}
+              onClick={() => !chapter.isLocked && onChapterClick(chapter)}
               className={cn(
-                "p-5 rounded-xl border transition-all duration-300 flex items-center justify-between group",
+                "group flex items-center justify-between py-6 md:py-8 border-b border-white/5 transition-all duration-700",
                 chapter.isLocked 
-                  ? "border-white/5 opacity-50 cursor-not-allowed" 
-                  : "border-white/10 hover:border-accent/50 hover:bg-white/5 cursor-pointer"
+                  ? "opacity-40 cursor-not-allowed" 
+                  : "cursor-pointer hover:border-accent/40"
               )}
             >
-              <div className="flex items-center gap-6">
-                <span className="font-mono text-xs text-muted group-hover:text-accent transition-colors">
+              <div className="flex items-center gap-6 md:gap-12">
+                <span className="font-mono text-[10px] md:text-xs text-muted/40 group-hover:text-accent transition-colors duration-500 tracking-[0.3em]">
                   {String(chapter.id).padStart(2, '0')}
                 </span>
-                <span className="font-medium tracking-tight">{chapter.title}</span>
+                <div className="space-y-1">
+                  <h3 className="text-xl md:text-2xl font-serif italic font-bold group-hover:text-white transition-colors duration-500">
+                    {chapter.title}
+                  </h3>
+                  <p className="text-[8px] md:text-[10px] font-mono text-muted/30 uppercase tracking-widest group-hover:text-muted/60 transition-colors duration-500">
+                    {chapter.isLocked ? 'Contenido Restringido' : 'Lectura Disponible'}
+                  </p>
+                </div>
               </div>
               
-              {chapter.isLocked ? (
-                <Lock size={16} className="text-muted" />
-              ) : (
-                <div className="flex items-center gap-2 text-accent opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span className="text-xs font-mono uppercase tracking-widest">Leer</span>
-                  <ArrowRight size={14} />
-                </div>
-              )}
+              <div className="flex items-center gap-4 md:gap-6">
+                {chapter.isLocked ? (
+                  <Lock size={16} md:size={18} className="text-muted/30" />
+                ) : (
+                  <div className="flex items-center gap-3 md:gap-4 opacity-0 group-hover:opacity-100 transition-all duration-700 transform translate-x-4 md:translate-x-8 group-hover:translate-x-0">
+                    <span className="text-[8px] md:text-[10px] font-mono uppercase tracking-[0.3em] text-accent font-bold hidden sm:block">Explorar</span>
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-accent/30 flex items-center justify-center text-accent group-hover:bg-accent group-hover:text-bg transition-all duration-500">
+                      <ArrowRight size={14} md:size={16} />
+                    </div>
+                  </div>
+                )}
+              </div>
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="pt-12 border-t border-white/5 text-center space-y-4">
-        <div className="flex justify-center gap-6 text-muted">
-          <button className="hover:text-accent transition-colors"><Share2 size={18} /></button>
-          <button className="hover:text-accent transition-colors"><Heart size={18} /></button>
-          <button 
-            onClick={() => onAuthorMessageClick?.()}
-            className="hover:text-accent transition-colors flex items-center gap-1 text-xs font-mono uppercase tracking-widest"
-          >
-            <MessageSquare size={18} />
-            Mensaje
-          </button>
+      {/* Author Note Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="mt-24 md:mt-48 glass p-8 md:p-20 rounded-[2rem] md:rounded-[4rem] border-white/5 relative overflow-hidden group"
+      >
+        <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-accent/5 blur-[80px] md:blur-[120px] rounded-full -mr-32 -mt-32 md:-mr-48 md:-mt-48 group-hover:bg-accent/10 transition-colors duration-1000" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 items-center relative z-10">
+          <div className="space-y-6 md:space-y-8">
+            <div className="flex items-center gap-4">
+              <div className="h-[1px] w-12 bg-accent" />
+              <span className="text-accent font-mono text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Nota del Autor</span>
+            </div>
+            <h2 className="text-4xl md:text-6xl font-serif italic font-bold tracking-tighter leading-tight">
+              Un mensaje para mis lectores más fieles.
+            </h2>
+            <p className="text-muted text-lg md:text-xl leading-relaxed font-light italic">
+              "Esta obra nació de la necesidad de cuestionar qué estamos dispuestos a sacrificar por nuestra pasión. Espero que encuentren en estas líneas un reflejo de sus propias búsquedas."
+            </p>
+            <button 
+              onClick={() => onAuthorMessageClick?.()}
+              className="w-full sm:w-auto px-10 py-5 border border-white/10 rounded-full hover:bg-white/5 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px] font-bold"
+            >
+              Leer Mensaje Completo
+              <MessageSquare size={16} md:size={18} className="text-accent" />
+            </button>
+          </div>
+          <div className="relative">
+            <div className="aspect-square rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 grayscale hover:grayscale-0 transition-all duration-1000">
+              <img 
+                src="https://picsum.photos/seed/writer/800/800" 
+                alt="Autor" 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+            <div className="absolute -bottom-4 -left-4 md:-bottom-8 -left-8 glass p-4 md:p-8 rounded-xl md:rounded-2xl border-white/10">
+              <p className="text-xl md:text-2xl font-serif italic font-bold">Sam C.</p>
+              <p className="text-[8px] md:text-[10px] font-mono text-muted uppercase tracking-widest">Director Editorial</p>
+            </div>
+          </div>
         </div>
-        <p 
-          className="text-xs font-mono text-muted/50 tracking-widest uppercase cursor-pointer"
-          onClick={onAuthorClick}
-        >
-          © 2026 SAM C. Todos los derechos reservados.
-        </p>
+      </motion.div>
+
+      {/* Footer */}
+      <footer className="mt-24 md:mt-48 pt-12 md:pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10 md:gap-12">
+        <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-[8px] md:text-[10px] font-mono uppercase tracking-[0.4em] text-muted/40">
+          <button className="hover:text-accent transition-colors duration-500">Compartir</button>
+          <button className="hover:text-accent transition-colors duration-500">Favoritos</button>
+          <button className="hover:text-accent transition-colors duration-500">Reportar</button>
+        </div>
+        <div className="flex items-center gap-6 md:gap-8">
+          <div className="flex gap-4 md:gap-6">
+            <button className="text-muted/40 hover:text-white transition-colors duration-500"><Share2 size={16} md:size={18} /></button>
+            <button className="text-muted/40 hover:text-white transition-colors duration-500"><Heart size={16} md:size={18} /></button>
+          </div>
+          <p className="text-[8px] md:text-[10px] font-mono text-muted/20 tracking-[0.5em] uppercase">
+            © 2026 SAM C. EDITORIAL
+          </p>
+        </div>
       </footer>
     </motion.div>
   );
@@ -1210,7 +1395,6 @@ function AdminView({
           updatedAt: serverTimestamp()
         });
       }
-      // Keep editing the same chapter but update the reference
       if (isAdding) {
         setIsAdding(false);
       }
@@ -1255,11 +1439,9 @@ function AdminView({
     if (confirm("¿Estás seguro de reiniciar todos los capítulos? Esto borrará los cambios actuales y restaurará los 27 capítulos bloqueados.")) {
       setIsSaving(true);
       try {
-        // Delete all existing
         for (const c of chapters) {
           await deleteDoc(doc(db, 'chapters', (c as any).docId));
         }
-        // Re-upload from constants
         for (const c of INITIAL_CHAPTERS) {
           await setDoc(doc(db, 'chapters', `chapter-${c.id}`), {
             ...c,
@@ -1281,207 +1463,259 @@ function AdminView({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="max-w-6xl mx-auto px-6 py-12"
+      className="max-w-7xl mx-auto px-6 pt-40 pb-24"
     >
-      <div className="flex items-center justify-between mb-12">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 glass rounded-full hover:bg-white/10">
-            <ChevronLeft size={24} />
-          </button>
-          <h1 className="text-3xl font-serif font-bold flex items-center gap-3">
-            <ShieldCheck className="text-accent" />
-            Panel de Control
-          </h1>
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 border-b border-white/5 pb-12">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <ShieldCheck className="text-accent" size={20} />
+            <span className="text-accent font-mono text-[10px] uppercase tracking-[0.5em] font-bold">Terminal de Gestión</span>
+          </div>
+          <h1 className="text-6xl font-serif italic font-bold tracking-tighter">Panel Editorial</h1>
         </div>
+        
         <div className="flex items-center gap-4">
           <button 
             onClick={handleReset}
             disabled={isSaving}
-            className="px-6 py-2 glass text-muted font-medium rounded-full flex items-center gap-2 hover:bg-white/10 transition-colors disabled:opacity-50"
-            title="Reiniciar a los 27 capítulos originales"
+            className="px-8 py-3 glass text-muted font-mono text-[10px] uppercase tracking-widest rounded-full hover:bg-white/5 transition-all disabled:opacity-50 flex items-center gap-3"
           >
-            <RotateCcw size={18} className={isSaving ? "animate-spin" : ""} /> Reiniciar
+            <RotateCcw size={14} className={isSaving ? "animate-spin" : ""} /> Reiniciar Sistema
           </button>
           <button 
             onClick={handleAddNew}
-            className="px-6 py-2 bg-accent text-bg font-bold rounded-full flex items-center gap-2 hover:bg-accent/80 transition-colors"
+            className="px-8 py-3 bg-white text-bg font-bold rounded-full flex items-center gap-3 hover:bg-accent transition-all duration-500 uppercase tracking-widest text-[10px]"
           >
-            <Plus size={18} /> Nuevo Capítulo
+            <Plus size={16} /> Nuevo Capítulo
           </button>
           <button 
             onClick={handleLogout}
-            className="p-2 glass rounded-full text-red-400 hover:bg-red-400/10 transition-colors"
+            className="p-3 glass rounded-full text-red-400/60 hover:text-red-400 hover:bg-red-400/5 transition-all duration-500"
           >
             <LogOut size={20} />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* List */}
-        <div className="lg:col-span-1 space-y-4 h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        {/* Sidebar List */}
+        <div className="lg:col-span-4 space-y-4 h-[75vh] overflow-y-auto pr-4 custom-scrollbar">
+          <div className="sticky top-0 bg-bg/80 backdrop-blur-md z-10 pb-4 mb-4 border-b border-white/5">
+            <p className="text-[9px] font-mono text-muted/40 uppercase tracking-[0.4em]">Índice de Manuscritos ({chapters.length})</p>
+          </div>
           {chapters.map(chapter => (
-            <div 
+            <motion.div 
               key={chapter.id}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
               className={cn(
-                "p-4 glass rounded-xl border transition-all cursor-pointer group",
+                "p-6 glass rounded-2xl border transition-all duration-500 cursor-pointer group relative overflow-hidden",
                 editingChapter?.id === chapter.id ? "border-accent bg-accent/5" : "border-white/5 hover:border-white/20"
               )}
               onClick={() => handleEdit(chapter as Chapter & { docId: string })}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-muted">#{chapter.id}</span>
-                  <span className="font-medium text-sm truncate max-w-[150px]">{chapter.title}</span>
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-6">
+                  <span className="font-mono text-[10px] text-muted/30 group-hover:text-accent transition-colors">
+                    {String(chapter.id).padStart(2, '0')}
+                  </span>
+                  <span className="font-serif italic text-lg truncate max-w-[180px] group-hover:text-white transition-colors">
+                    {chapter.title}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <button 
                     onClick={(e) => { e.stopPropagation(); toggleLock(chapter as Chapter & { docId: string }); }}
-                    className={cn("p-1.5 rounded-md transition-colors", chapter.isLocked ? "text-muted" : "text-accent bg-accent/10")}
+                    className={cn(
+                      "p-2 rounded-lg transition-all duration-500", 
+                      chapter.isLocked ? "text-muted/30 hover:text-muted" : "text-accent bg-accent/10"
+                    )}
                   >
                     {chapter.isLocked ? <Lock size={14} /> : <Unlock size={14} />}
                   </button>
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleDelete((chapter as any).docId); }}
-                    className="p-1.5 text-muted hover:text-red-400 transition-colors"
+                    className="p-2 text-muted/20 hover:text-red-400 hover:bg-red-400/5 rounded-lg transition-all duration-500"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
               </div>
-            </div>
+              {editingChapter?.id === chapter.id && (
+                <div className="absolute left-0 top-0 w-1 h-full bg-accent" />
+              )}
+            </motion.div>
           ))}
         </div>
 
-        {/* Editor */}
-        <div className="lg:col-span-2">
+        {/* Editor Area */}
+        <div className="lg:col-span-8">
           {(editingChapter || isAdding) ? (
             <motion.form 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
               onSubmit={handleSave}
-              className="glass p-8 rounded-3xl border-white/10 space-y-6"
+              className="glass p-12 rounded-[3rem] border-white/10 space-y-10 relative overflow-hidden"
             >
+              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
+              
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  {isAdding ? <Plus size={20} /> : <Edit3 size={20} />}
-                  {isAdding ? 'Crear Nuevo Capítulo' : `Editando Capítulo ${formData.id}`}
-                </h2>
+                <div className="space-y-1">
+                  <h2 className="text-3xl font-serif italic font-bold flex items-center gap-4">
+                    {isAdding ? 'Nuevo Manuscrito' : `Editando Capítulo ${formData.id}`}
+                  </h2>
+                  <p className="text-[10px] font-mono text-muted/40 uppercase tracking-widest">
+                    {isAdding ? 'Creando entrada en el catálogo' : 'Modificando registro existente'}
+                  </p>
+                </div>
                 <button 
                   type="button" 
                   onClick={() => { setEditingChapter(null); setIsAdding(false); }}
-                  className="text-muted hover:text-white"
+                  className="p-3 glass rounded-full text-muted hover:text-white transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-1 space-y-2">
-                  <label className="text-xs font-mono text-muted uppercase">ID</label>
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div className="md:col-span-2 space-y-3">
+                  <label className="text-[9px] font-mono text-muted/60 uppercase tracking-[0.3em] ml-2">ID</label>
                   <input 
                     type="number" 
                     value={formData.id}
                     onChange={e => setFormData({...formData, id: parseInt(e.target.value)})}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-accent outline-none"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-accent outline-none font-mono text-sm transition-all"
                     required
                   />
                 </div>
-                <div className="col-span-3 space-y-2">
-                  <label className="text-xs font-mono text-muted uppercase">Título</label>
+                <div className="md:col-span-10 space-y-3">
+                  <label className="text-[9px] font-mono text-muted/60 uppercase tracking-[0.3em] ml-2">Título de la Obra</label>
                   <input 
                     type="text" 
                     value={formData.title}
                     onChange={e => setFormData({...formData, title: e.target.value})}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-accent outline-none"
-                    placeholder="Título del capítulo..."
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-accent outline-none font-serif italic text-xl transition-all"
+                    placeholder="Escribe el título aquí..."
                     required
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <label className="text-xs font-mono text-muted uppercase">Contenido de la Historia</label>
-                    <button 
-                      type="button"
-                      onClick={() => setIsPreview(!isPreview)}
-                      className={cn(
-                        "px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest transition-colors",
-                        isPreview ? "bg-accent text-bg" : "bg-white/5 text-muted hover:bg-white/10"
-                      )}
-                    >
-                      {isPreview ? 'Editar' : 'Vista Previa'}
-                    </button>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between px-2">
+                  <div className="flex items-center gap-6">
+                    <label className="text-[9px] font-mono text-muted/60 uppercase tracking-[0.3em]">Cuerpo del Manuscrito</label>
+                    <div className="flex glass rounded-full p-1">
+                      <button 
+                        type="button"
+                        onClick={() => setIsPreview(false)}
+                        className={cn(
+                          "px-4 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-widest transition-all duration-500",
+                          !isPreview ? "bg-white text-bg font-bold" : "text-muted hover:text-white"
+                        )}
+                      >
+                        Editor
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setIsPreview(true)}
+                        className={cn(
+                          "px-4 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-widest transition-all duration-500",
+                          isPreview ? "bg-white text-bg font-bold" : "text-muted hover:text-white"
+                        )}
+                      >
+                        Vista Previa
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <span className="text-[10px] font-mono text-muted/30 uppercase tracking-widest">{wordCount} palabras</span>
                     <button 
                       type="button"
                       onClick={handleCopy}
-                      className="px-3 py-1 bg-white/5 text-muted hover:bg-white/10 rounded-full text-[10px] font-mono uppercase tracking-widest transition-colors"
+                      className="text-accent hover:text-white transition-colors"
+                      title="Copiar Contenido"
                     >
-                      Copiar
+                      <Copy size={16} />
                     </button>
                   </div>
-                  <span className="text-xs font-mono text-muted/50">{wordCount} palabras</span>
                 </div>
                 
-                {isPreview ? (
-                  <div className="w-full min-h-[500px] bg-white/5 border border-white/10 rounded-2xl px-8 py-8 overflow-y-auto font-serif text-lg leading-relaxed text-white/80">
-                    {formData.content.split(/\n\s*\n/).map((para, i) => (
-                      <p key={i} className="mb-6 first-letter:text-3xl first-letter:text-accent first-letter:mr-1">
-                        {para}
-                      </p>
-                    ))}
-                    {formData.content === '' && <p className="text-muted italic">Sin contenido para mostrar...</p>}
+                <div className="relative group">
+                  {isPreview ? (
+                    <div className="w-full min-h-[500px] max-h-[60vh] bg-white/[0.02] border border-white/5 rounded-[2rem] px-12 py-12 overflow-y-auto font-serif text-xl leading-relaxed text-white/70 custom-scrollbar">
+                      {formData.content.split(/\n\s*\n/).map((para, i) => (
+                        <p key={i} className="mb-8 first-letter:text-4xl first-letter:text-accent first-letter:mr-2 first-letter:font-bold">
+                          {para}
+                        </p>
+                      ))}
+                      {formData.content === '' && (
+                        <div className="h-full flex flex-col items-center justify-center text-muted/20 py-20">
+                          <FileText size={48} className="mb-4" />
+                          <p className="italic">El manuscrito está vacío...</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <textarea 
+                      value={formData.content}
+                      onChange={e => setFormData({...formData, content: e.target.value})}
+                      onKeyDown={handleKeyDown}
+                      className="w-full min-h-[500px] max-h-[60vh] bg-white/[0.02] border border-white/5 rounded-[2rem] px-10 py-10 focus:border-accent/30 outline-none resize-none font-serif text-xl leading-relaxed text-white/80 custom-scrollbar transition-all duration-700"
+                      placeholder="Comienza a tejer la historia aquí..."
+                      required
+                    />
+                  )}
+                  <div className="absolute bottom-6 right-8 pointer-events-none">
+                    <p className="text-[9px] font-mono text-muted/20 uppercase tracking-[0.4em]">Modo Editorial Activo</p>
                   </div>
-                ) : (
-                  <textarea 
-                    value={formData.content}
-                    onChange={e => setFormData({...formData, content: e.target.value})}
-                    onKeyDown={handleKeyDown}
-                    className="w-full min-h-[500px] bg-white/5 border border-white/10 rounded-2xl px-6 py-5 focus:border-accent outline-none resize-y font-serif text-lg leading-relaxed custom-scrollbar"
-                    placeholder="Escribe el alma de este capítulo aquí... (Usa Ctrl+S para guardar rápido)"
-                    required
-                  />
-                )}
+                </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <div 
-                    onClick={() => setFormData({...formData, isLocked: !formData.isLocked})}
-                    className={cn(
-                      "w-12 h-6 rounded-full transition-colors relative",
-                      formData.isLocked ? "bg-white/10" : "bg-accent"
-                    )}
-                  >
-                    <div className={cn(
-                      "absolute top-1 w-4 h-4 bg-white rounded-full transition-all",
-                      formData.isLocked ? "left-1" : "left-7"
-                    )} />
-                  </div>
-                  <span className="text-sm font-medium">
-                    {formData.isLocked ? 'Capítulo Bloqueado' : 'Capítulo Público'}
-                  </span>
-                </label>
+              <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-6">
+                <div className="flex items-center gap-8">
+                  <label className="flex items-center gap-4 cursor-pointer group">
+                    <div 
+                      onClick={() => setFormData({...formData, isLocked: !formData.isLocked})}
+                      className={cn(
+                        "w-14 h-7 rounded-full transition-all duration-500 relative border border-white/10",
+                        formData.isLocked ? "bg-white/5" : "bg-accent"
+                      )}
+                    >
+                      <div className={cn(
+                        "absolute top-1 w-5 h-5 rounded-full transition-all duration-500 shadow-lg",
+                        formData.isLocked ? "left-1 bg-muted/40" : "left-8 bg-white"
+                      )} />
+                    </div>
+                    <span className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold text-muted group-hover:text-white transition-colors">
+                      {formData.isLocked ? 'Acceso Restringido' : 'Publicación Abierta'}
+                    </span>
+                  </label>
+                </div>
 
-                <button 
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-8 py-3 bg-accent text-bg font-bold rounded-xl flex items-center gap-2 hover:bg-accent/80 transition-all disabled:opacity-50"
-                >
-                  {isSaving ? <Loader2 className="animate-spin" /> : <Save size={18} />}
-                  {isAdding ? 'Publicar Capítulo' : 'Guardar Cambios'}
-                </button>
+                <div className="flex items-center gap-6">
+                  <p className="text-[9px] font-mono text-muted/30 uppercase tracking-widest hidden md:block">Presiona Ctrl+S para guardar</p>
+                  <button 
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-12 py-5 bg-white text-bg font-bold rounded-full flex items-center gap-4 hover:bg-accent hover:scale-105 transition-all duration-500 uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-white/5"
+                  >
+                    {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                    {isAdding ? 'Publicar Obra' : 'Sincronizar Cambios'}
+                  </button>
+                </div>
               </div>
             </motion.form>
           ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-12 glass rounded-3xl border-dashed border-white/10">
-              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center text-muted mb-4">
-                <Edit3 size={32} />
+            <div className="h-full flex flex-col items-center justify-center text-center p-24 glass rounded-[4rem] border-dashed border-white/5 group">
+              <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-muted/20 mb-8 group-hover:scale-110 group-hover:bg-accent/5 group-hover:text-accent/40 transition-all duration-1000">
+                <Edit3 size={48} />
               </div>
-              <h3 className="text-xl font-medium text-muted">Selecciona un capítulo para editar</h3>
-              <p className="text-sm text-muted/50 mt-2">O crea uno nuevo usando el botón superior</p>
+              <h3 className="text-3xl font-serif italic font-bold text-muted/40">Selecciona un Manuscrito</h3>
+              <p className="text-[10px] font-mono text-muted/20 uppercase tracking-[0.5em] mt-4">
+                Listo para la edición y curaduría de contenido.
+              </p>
             </div>
           )}
         </div>
@@ -1489,6 +1723,7 @@ function AdminView({
     </motion.div>
   );
 }
+
 
 function ReadingView({ 
   chapter, 
@@ -1524,7 +1759,6 @@ function ReadingView({
 
     window.addEventListener('scroll', handleScroll);
     
-    // Auto-bookmark on unmount (when leaving the chapter)
     return () => {
       window.removeEventListener('scroll', handleScroll);
       onSaveBookmark(chapter.id, window.scrollY);
@@ -1538,66 +1772,77 @@ function ReadingView({
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="max-w-2xl mx-auto px-6 py-12 md:py-24"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-bg relative"
     >
-      {/* Progress Bar */}
-      <div className="fixed top-0 left-0 w-full h-1 bg-white/5 z-50">
+      {/* Progress Bar - Minimalist */}
+      <div className="fixed top-0 left-0 w-full h-[2px] bg-white/5 z-[100]">
         <motion.div 
-          className="h-full bg-accent"
+          className="h-full bg-accent shadow-[0_0_10px_rgba(242,125,38,0.5)]"
           style={{ width: `${progress}%` }}
         />
       </div>
 
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 w-full p-6 flex justify-between items-center z-40 pointer-events-none">
-        <button 
+      {/* Floating Navigation - Glassmorphism */}
+      <nav className="fixed top-6 md:top-12 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 md:px-6 flex justify-between items-center z-[90] pointer-events-none">
+        <motion.button 
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
           onClick={handleBack}
-          className="p-3 glass rounded-full hover:bg-white/10 transition-colors pointer-events-auto group"
+          className="p-3 md:p-4 glass rounded-full hover:bg-white/10 transition-all duration-500 pointer-events-auto group border-white/5"
         >
-          <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
-        </button>
-        <div className="flex gap-3 pointer-events-auto">
+          <ChevronLeft size={18} className="md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
+        </motion.button>
+        
+        <motion.div 
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="flex gap-2 md:gap-4 pointer-events-auto"
+        >
           <button 
             onClick={handleBookmark}
             className={cn(
-              "p-3 glass rounded-full transition-all duration-300",
-              currentBookmark !== undefined ? "text-accent border-accent/50" : "hover:bg-white/10"
+              "p-3 md:p-4 glass rounded-full transition-all duration-500 border-white/5",
+              currentBookmark !== undefined ? "text-accent border-accent/30" : "hover:bg-white/10"
             )}
-            title="Guardar marcador"
           >
-            {currentBookmark !== undefined ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
+            {currentBookmark !== undefined ? <BookmarkCheck size={18} className="md:w-5 md:h-5" /> : <Bookmark size={18} className="md:w-5 md:h-5" />}
           </button>
-          <button className="p-3 glass rounded-full hover:bg-white/10 transition-colors">
-            <MessageSquare size={20} />
+          <button className="p-3 md:p-4 glass rounded-full hover:bg-white/10 transition-all duration-500 border-white/5">
+            <Heart size={18} className="md:w-5 md:h-5" />
           </button>
-          <button className="p-3 glass rounded-full hover:bg-white/10 transition-colors">
-            <Heart size={20} />
+          <button className="p-3 md:p-4 glass rounded-full hover:bg-white/10 transition-all duration-500 border-white/5">
+            <Share2 size={18} className="md:w-5 md:h-5" />
           </button>
-        </div>
+        </motion.div>
       </nav>
 
       {/* Bookmark Toast */}
       <AnimatePresence>
         {showBookmarkToast && (
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-12 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-black/95 backdrop-blur-xl rounded-full border border-accent/50 text-accent font-mono text-xs uppercase tracking-widest"
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.9 }}
+            className="fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-[110] px-6 md:px-10 py-3 md:py-4 bg-white text-bg rounded-full font-mono text-[8px] md:text-[10px] uppercase tracking-[0.3em] font-bold shadow-2xl"
           >
-            Marcador guardado
+            Progreso Sincronizado
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Content */}
-      <article className="space-y-12">
-        <header className="space-y-4 text-center mb-24">
-          <span className="text-accent font-mono text-xs tracking-widest uppercase">Capítulo {chapter.id}</span>
-          <h1 className="text-5xl md:text-7xl font-serif font-bold tracking-tight">
+      {/* Content Area */}
+      <article className="max-w-3xl mx-auto px-6 md:px-8 pt-32 md:pt-48 pb-40 md:pb-64">
+        <header className="space-y-8 md:space-y-12 text-center mb-20 md:mb-32">
+          <div className="flex items-center justify-center gap-4">
+            <div className="h-[1px] w-8 md:w-12 bg-accent/30" />
+            <span className="text-accent font-mono text-[9px] md:text-[10px] tracking-[0.5em] uppercase font-bold">Capítulo {String(chapter.id).padStart(2, '0')}</span>
+            <div className="h-[1px] w-8 md:w-12 bg-accent/30" />
+          </div>
+          
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-serif font-bold tracking-tighter leading-none">
             <ShinyText 
               text={chapter.title} 
               speed={2} 
@@ -1606,45 +1851,85 @@ function ReadingView({
               spread={120}
             />
           </h1>
-          <div className="w-12 h-1 bg-accent mx-auto mt-8" />
+          
+          <div className="flex items-center justify-center gap-4 md:gap-8 pt-4 md:pt-8">
+            <div className="flex flex-col items-center gap-1 md:gap-2">
+              <span className="text-[8px] md:text-[9px] font-mono text-muted/30 uppercase tracking-widest">Tiempo Est.</span>
+              <span className="text-xs md:text-sm font-serif italic">8 min</span>
+            </div>
+            <div className="w-[1px] h-6 md:h-8 bg-white/5" />
+            <div className="flex flex-col items-center gap-1 md:gap-2">
+              <span className="text-[8px] md:text-[9px] font-mono text-muted/30 uppercase tracking-widest">Palabras</span>
+              <span className="text-xs md:text-sm font-serif italic">{chapter.content?.split(/\s+/).length}</span>
+            </div>
+          </div>
         </header>
 
-        <div className="prose prose-invert prose-lg max-w-none">
-          {chapter.content?.split('\n\n').map((para, i) => (
-            <p key={i} className="text-xl leading-relaxed font-light text-white/80 mb-8 first-letter:text-4xl first-letter:font-serif first-letter:text-accent first-letter:mr-1">
-              {para}
-            </p>
+        <div className="space-y-8 md:space-y-12">
+          {chapter.content?.split(/\n\s*\n/).map((para, i) => (
+            <motion.p 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
+              className="text-lg md:text-2xl leading-[1.8] font-light text-white/80 font-serif selection:bg-accent/30 selection:text-white"
+            >
+              {i === 0 ? (
+                <>
+                  <span className="text-5xl md:text-7xl font-bold text-accent float-left mr-3 md:mr-4 mt-1 md:mt-2 leading-[0.8] font-serif">
+                    {para.charAt(0)}
+                  </span>
+                  {para.slice(1)}
+                </>
+              ) : para}
+            </motion.p>
           ))}
         </div>
 
-        <footer className="pt-24 border-t border-white/10 text-center space-y-8">
-          <p className="text-muted font-serif italic text-lg">Fin del capítulo {chapter.id}</p>
+        <footer className="mt-32 md:mt-48 pt-16 md:pt-24 border-t border-white/5 text-center space-y-12 md:space-y-16">
+          <div className="space-y-4">
+            <p className="text-muted font-serif italic text-xl md:text-2xl">Fin del Capítulo {chapter.id}</p>
+            <div className="w-12 md:w-16 h-[1px] bg-accent/30 mx-auto" />
+          </div>
           
-          <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col items-center gap-6 md:gap-8">
             {isLastChapter ? (
               <button 
                 onClick={onFinish}
-                className="px-12 py-4 bg-accent text-bg rounded-full hover:bg-accent/80 transition-all font-bold shadow-xl shadow-accent/20 scale-110"
+                className="w-full md:w-auto px-12 md:px-20 py-5 md:py-6 bg-white text-bg rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 font-bold uppercase tracking-[0.2em] text-[9px] md:text-[10px] shadow-2xl shadow-white/5"
               >
-                Finalizar Historia
+                Finalizar Obra
               </button>
             ) : (
               <button 
                 onClick={handleBack}
-                className="px-12 py-4 glass rounded-full hover:bg-white/10 transition-colors font-bold"
+                className="w-full md:w-auto px-12 md:px-20 py-5 md:py-6 glass rounded-full hover:bg-white/10 hover:scale-105 transition-all duration-500 font-bold uppercase tracking-[0.2em] text-[9px] md:text-[10px] border-white/5"
               >
                 Volver al Índice
               </button>
             )}
           </div>
 
-          <div className="pt-12 space-y-2">
-            <p className="text-xs font-mono text-muted/50 tracking-widest uppercase">
-              © 2026 SAM C. Todos los derechos reservados.
+          <div className="pt-16 md:pt-24 space-y-4">
+            <p className="text-[8px] md:text-[9px] font-mono text-muted/20 tracking-[0.5em] uppercase">
+              © 2026 SAM C. EDITORIAL • TODOS LOS DERECHOS RESERVADOS
             </p>
+            <div className="flex justify-center gap-6 md:gap-8 text-muted/20">
+              <Share2 size={14} className="md:w-4 md:h-4" />
+              <Heart size={14} className="md:w-4 md:h-4" />
+              <Bookmark size={14} className="md:w-4 md:h-4" />
+            </div>
           </div>
         </footer>
       </article>
+
+      {/* Decorative Elements */}
+      <div className="fixed inset-0 pointer-events-none z-[-1]">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-accent/[0.02] blur-[150px] rounded-full -mr-96 -mt-96" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-white/[0.01] blur-[120px] rounded-full -ml-48 -mb-48" />
+      </div>
     </motion.div>
   );
 }
+
