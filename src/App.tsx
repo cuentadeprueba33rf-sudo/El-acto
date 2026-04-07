@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   BookOpen, 
@@ -138,10 +138,7 @@ export default function App() {
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [view, setView] = useState<'catalog' | 'story-detail' | 'reading' | 'admin'>('catalog');
   const [chapters, setChapters] = useState<Chapter[]>([]);
-  const [stories, setStories] = useState<StoryInfo[]>(() => {
-    const saved = localStorage.getItem('app-stories');
-    return saved ? JSON.parse(saved) : CATALOG_DATA;
-  });
+  const [stories, setStories] = useState<StoryInfo[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [bookmarks, setBookmarks] = useState<Record<number, number>>({});
@@ -165,18 +162,65 @@ export default function App() {
   const [showSecurityWarning, setShowSecurityWarning] = useState(false);
   const [adminClickCount, setAdminClickCount] = useState(0);
   const [newChapterNotify, setNewChapterNotify] = useState<Chapter | null>(null);
-  const [prevChapters, setPrevChapters] = useState<Chapter[]>([]);
   const [notifyProgress, setNotifyProgress] = useState(100);
 
   const NOTIFY_DURATION = 8000; // 8 seconds
 
   const ADMIN_EMAIL = "samuelcasseresbx@gmail.com";
 
+  const prevChaptersRef = useRef<Chapter[]>([]);
+
+  const handleFirestoreError = (error: any, operation: string, path: string) => {
+    const errInfo = {
+      error: error?.message || String(error),
+      operation,
+      path,
+      auth: {
+        uid: auth.currentUser?.uid,
+        email: auth.currentUser?.email,
+        verified: auth.currentUser?.emailVerified
+      }
+    };
+    console.error(`Firestore Error [${operation}]:`, JSON.stringify(errInfo));
+  };
+
   useEffect(() => {
     // Auth Listener
     const unsubscribeAuth = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setIsAdmin(u?.email === ADMIN_EMAIL);
+    });
+
+    // Stories Listener
+    const storiesQuery = query(collection(db, 'stories'), orderBy('title', 'asc'));
+    const unsubscribeStories = onSnapshot(storiesQuery, (snapshot) => {
+      const fetchedStories = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        docId: doc.id
+      })) as (StoryInfo & { docId: string })[];
+      
+      const hasElActo = fetchedStories.some(s => s.id === 'el-acto');
+
+      if (isAdmin && !hasElActo) {
+        // Initial migration for stories if missing
+        CATALOG_DATA.forEach(async (s) => {
+          try {
+            await setDoc(doc(db, 'stories', s.id), {
+              ...s,
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          } catch (e) {
+            handleFirestoreError(e, 'WRITE', `stories/${s.id}`);
+          }
+        });
+      }
+
+      if (fetchedStories.length > 0 || !isAdmin) {
+        setStories(fetchedStories);
+      }
+    }, (error) => {
+      handleFirestoreError(error, 'LIST', 'stories');
     });
 
     // Chapters Listener
@@ -187,41 +231,54 @@ export default function App() {
         docId: doc.id
       })) as (Chapter & { docId: string })[];
       
-      if (fetchedChapters.length === 0 && isAdmin) {
-        // Initial migration if empty (only if admin is logged in)
-        INITIAL_CHAPTERS.forEach(async (c) => {
-          await setDoc(doc(db, 'chapters', `chapter-${c.id}`), {
-            ...c,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          });
-        });
-      } else {
-        // Check for newly unlocked chapters
-        if (prevChapters.length > 0 && !isAdmin) {
-          const newlyUnlocked = fetchedChapters.find(c => {
-            const prev = prevChapters.find(p => p.id === c.id);
-            return prev && prev.isLocked && !c.isLocked;
-          });
-          
-          if (newlyUnlocked) {
-            setNewChapterNotify(newlyUnlocked);
-          }
-        }
+      const hasElActoChapters = fetchedChapters.some(c => c.storyId === 'el-acto');
 
-        // Check for new chapters on initial load for returning users
-        if (prevChapters.length === 0 && fetchedChapters.length > 0 && !isAdmin) {
-          const lastSeenId = Number(localStorage.getItem('el-acto-last-seen-id') || '0');
-          const latestUnlocked = [...fetchedChapters].reverse().find(c => !c.isLocked);
-          
-          if (latestUnlocked && latestUnlocked.id > lastSeenId) {
+      if (isAdmin && !hasElActoChapters) {
+        // Initial migration for El Acto if missing
+        INITIAL_CHAPTERS.forEach(async (c) => {
+          try {
+            const docId = `${c.storyId || 'el-acto'}-chapter-${c.id}`;
+            await setDoc(doc(db, 'chapters', docId), {
+              ...c,
+              storyId: c.storyId || 'el-acto',
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          } catch (e) {
+            handleFirestoreError(e, 'WRITE', `chapters/${c.id}`);
+          }
+        });
+      }
+
+      setChapters(fetchedChapters);
+
+      // Check for newly unlocked chapters
+      if (prevChaptersRef.current.length > 0 && !isAdmin) {
+        const newlyUnlocked = fetchedChapters.find(c => {
+          const prev = prevChaptersRef.current.find(p => p.id === c.id);
+          return prev && prev.isLocked && !c.isLocked;
+        });
+        
+        if (newlyUnlocked) {
+          setNewChapterNotify(newlyUnlocked);
+        }
+      }
+
+      // Check for new chapters on initial load for returning users
+      if (prevChaptersRef.current.length === 0 && fetchedChapters.length > 0 && !isAdmin) {
+        // Check for any story's last seen
+        const latestUnlocked = [...fetchedChapters].reverse().find(c => !c.isLocked);
+        if (latestUnlocked) {
+          const lastSeenId = Number(localStorage.getItem(`story-${latestUnlocked.storyId}-last-seen-id`) || '0');
+          if (latestUnlocked.id > lastSeenId) {
             setNewChapterNotify(latestUnlocked);
           }
         }
-
-        setChapters(fetchedChapters);
-        setPrevChapters(fetchedChapters);
       }
+
+      prevChaptersRef.current = fetchedChapters;
+    }, (error) => {
+      handleFirestoreError(error, 'LIST', 'chapters');
     });
 
     // Prevent right-click and long-press
@@ -254,18 +311,10 @@ export default function App() {
 
     // Simulate initial loading
     const timer = setTimeout(() => setIsLoading(false), 3500);
-    
-    const saved = localStorage.getItem('el-acto-bookmarks');
-    if (saved) {
-      try {
-        setBookmarks(JSON.parse(saved));
-      } catch (e) {
-        console.error("Error loading bookmarks", e);
-      }
-    }
 
     return () => {
       unsubscribeAuth();
+      unsubscribeStories();
       unsubscribeChapters();
       clearTimeout(timer);
       document.removeEventListener('contextmenu', handleContextMenu);
@@ -279,21 +328,42 @@ export default function App() {
     };
   }, [isAdmin]);
 
+  useEffect(() => {
+    // Load bookmarks for the selected story
+    if (selectedStory) {
+      const saved = localStorage.getItem(`story-${selectedStory}-bookmarks`);
+      if (saved) {
+        try {
+          setBookmarks(JSON.parse(saved));
+        } catch (e) {
+          console.error("Error loading bookmarks", e);
+          setBookmarks({});
+        }
+      } else {
+        setBookmarks({});
+      }
+    }
+  }, [selectedStory]);
+
   const saveBookmark = useCallback((chapterId: number, scrollY: number) => {
+    if (!selectedStory) return;
     setBookmarks(prev => {
       const newBookmarks = { ...prev, [chapterId]: scrollY };
-      localStorage.setItem('el-acto-bookmarks', JSON.stringify(newBookmarks));
+      localStorage.setItem(`story-${selectedStory}-bookmarks`, JSON.stringify(newBookmarks));
       return newBookmarks;
     });
-  }, []);
+  }, [selectedStory]);
 
   const handleChapterClick = (chapter: Chapter) => {
     if (!chapter.isLocked) {
       setSelectedChapter(chapter);
       setView('reading');
       
-      // Update last seen ID
-      localStorage.setItem('el-acto-last-seen-id', String(chapter.id));
+      // Update last seen ID for this story
+      if (selectedStory) {
+        localStorage.setItem(`story-${selectedStory}-last-seen-id`, String(chapter.id));
+      }
+      
       if (newChapterNotify?.id === chapter.id) {
         setNewChapterNotify(null);
       }
@@ -1381,19 +1451,20 @@ function HomeView({
           <div className="pt-4 md:pt-8 flex flex-wrap gap-4 md:gap-6">
             <button 
               onClick={() => {
-                if (storyId === 'el-acto' && chapters.length > 0) {
-                  onChapterClick(chapters[0]);
+                const storyChapters = chapters.filter(c => c.storyId === storyId);
+                if (storyChapters.length > 0) {
+                  onChapterClick(storyChapters[0]);
                 } else {
                   alert('Los capítulos de esta obra estarán disponibles próximamente.');
                 }
               }}
               className="flex-1 sm:flex-none px-8 py-5 md:px-16 md:py-6 bg-white text-bg font-bold rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
             >
-              {lastChapter && storyId === 'el-acto' ? 'Reiniciar Lectura' : 'Comenzar Experiencia'}
+              {lastChapter && chapters.filter(c => c.storyId === storyId).some(c => c.id === lastChapter.id) ? 'Reiniciar Lectura' : 'Comenzar Experiencia'}
               <ArrowRight size={16} md:size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
             </button>
             
-            {lastChapter && storyId === 'el-acto' && (
+            {lastChapter && chapters.filter(c => c.storyId === storyId).some(c => c.id === lastChapter.id) && (
               <button 
                 onClick={() => onChapterClick(lastChapter)}
                 className="flex-1 sm:flex-none px-8 py-5 md:px-16 md:py-6 glass text-white font-bold rounded-full hover:bg-white/10 hover:scale-105 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
@@ -1556,6 +1627,7 @@ function AdminView({
   key?: string | number;
 }) {
   const [activeTab, setActiveTab] = useState<'stories' | 'chapters'>('stories');
+  const [chapterFilter, setChapterFilter] = useState<string>('all');
   
   // Chapters State
   const [editingChapter, setEditingChapter] = useState<(Chapter & { docId: string }) | null>(null);
@@ -1579,8 +1651,10 @@ function AdminView({
   };
 
   const handleAddNewChapter = () => {
-    const nextId = chapters.length > 0 ? Math.max(...chapters.map(c => c.id)) + 1 : 1;
-    setChapterFormData({ id: nextId, title: '', content: '', isLocked: true, storyId: 'el-acto' });
+    const defaultStoryId = chapterFilter !== 'all' ? chapterFilter : (stories.length > 0 ? stories[0].id : 'el-acto');
+    const storyChapters = chapters.filter(c => c.storyId === defaultStoryId);
+    const nextId = storyChapters.length > 0 ? Math.max(...storyChapters.map(c => c.id)) + 1 : 1;
+    setChapterFormData({ id: nextId, title: '', content: '', isLocked: true, storyId: defaultStoryId });
     setIsAddingChapter(true);
     setEditingChapter(null);
   };
@@ -1642,34 +1716,86 @@ function AdminView({
     setEditingStory(null);
   };
 
-  const handleSaveStory = (e?: React.FormEvent) => {
+  const handleSaveStory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    let newStories;
-    if (editingStory) {
-      newStories = stories.map(s => s.id === editingStory.id ? storyFormData : s);
-    } else {
-      newStories = [...stories, storyFormData];
+    try {
+      if (editingStory) {
+        await updateDoc(doc(db, 'stories', editingStory.id), {
+          ...storyFormData,
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        await setDoc(doc(db, 'stories', storyFormData.id), {
+          ...storyFormData,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      }
+      setEditingStory(null);
+      setIsAddingStory(false);
+    } catch (error) {
+      console.error("Error saving story:", error);
     }
-    setStories(newStories);
-    localStorage.setItem('app-stories', JSON.stringify(newStories));
-    setEditingStory(null);
-    setIsAddingStory(false);
   };
 
-  const handleDeleteStory = (id: string) => {
+  const handleDeleteStory = async (id: string) => {
     if (confirm("¿Estás seguro de eliminar esta historia?")) {
-      const newStories = stories.filter(s => s.id !== id);
-      setStories(newStories);
-      localStorage.setItem('app-stories', JSON.stringify(newStories));
+      try {
+        await deleteDoc(doc(db, 'stories', id));
+      } catch (error) {
+        console.error("Error deleting story:", error);
+      }
     }
   };
 
   const handleAddNewChapterForStory = (storyId: string) => {
     setActiveTab('chapters');
-    const nextId = chapters.length > 0 ? Math.max(...chapters.map(c => c.id)) + 1 : 1;
+    setChapterFilter(storyId);
+    const storyChapters = chapters.filter(c => c.storyId === storyId);
+    const nextId = storyChapters.length > 0 ? Math.max(...storyChapters.map(c => c.id)) + 1 : 1;
     setChapterFormData({ id: nextId, title: '', content: '', isLocked: true, storyId: storyId });
     setIsAddingChapter(true);
     setEditingChapter(null);
+  };
+
+  const handleManualSync = async () => {
+    if (!isAdmin) return;
+    if (!confirm("¿Deseas sincronizar los datos iniciales (Historias y Capítulos) con la base de datos? Esto no borrará tus cambios actuales.")) return;
+
+    // Sync Stories
+    for (const s of CATALOG_DATA) {
+      const exists = stories.some(story => story.id === s.id);
+      if (!exists) {
+        try {
+          await setDoc(doc(db, 'stories', s.id), {
+            ...s,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        } catch (e) {
+          handleFirestoreError(e, 'WRITE', `stories/${s.id}`);
+        }
+      }
+    }
+
+    // Sync Chapters
+    for (const c of INITIAL_CHAPTERS) {
+      const exists = chapters.some(chapter => chapter.id === c.id && chapter.storyId === (c.storyId || 'el-acto'));
+      if (!exists) {
+        try {
+          const docId = `${c.storyId || 'el-acto'}-chapter-${c.id}`;
+          await setDoc(doc(db, 'chapters', docId), {
+            ...c,
+            storyId: c.storyId || 'el-acto',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          });
+        } catch (e) {
+          handleFirestoreError(e, 'WRITE', `chapters/${c.id}`);
+        }
+      }
+    }
+    alert("Sincronización completada.");
   };
 
   const handleLogout = () => {
@@ -1694,6 +1820,14 @@ function AdminView({
         </div>
         
         <div className="flex items-center gap-4">
+          <button 
+            onClick={handleManualSync}
+            className="px-6 py-2 glass rounded-full text-xs font-bold uppercase tracking-widest text-accent hover:bg-accent/10 transition-all flex items-center gap-2"
+            title="Sincronizar datos iniciales"
+          >
+            <RotateCcw size={14} />
+            Sincronizar
+          </button>
           <button 
             onClick={onBack}
             className="px-6 py-2 glass rounded-full text-xs font-bold uppercase tracking-widest hover:bg-black/5 dark:hover:bg-white/5 transition-all"
@@ -1773,6 +1907,13 @@ function AdminView({
                       title="Añadir Capítulo"
                     >
                       <Plus size={16} />
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setActiveTab('chapters'); setChapterFilter(story.id); }}
+                      className="p-2 text-muted/40 hover:text-accent hover:bg-accent/5 rounded-lg transition-all"
+                      title="Ver Capítulos"
+                    >
+                      <FileText size={16} />
                     </button>
                   </div>
                 </div>
@@ -1893,13 +2034,30 @@ function AdminView({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Sidebar List */}
           <div className="lg:col-span-4 space-y-4 h-[70vh] overflow-y-auto pr-4 custom-scrollbar">
-            <div className="sticky top-0 bg-bg/90 backdrop-blur-md z-10 pb-4 mb-4 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
-              <p className="text-xs text-muted font-semibold uppercase tracking-wider">Capítulos ({chapters.length})</p>
-              <button onClick={handleAddNewChapter} className="p-2 bg-accent text-white rounded-full hover:bg-accent/80 transition-colors">
-                <Plus size={16} />
-              </button>
+            <div className="sticky top-0 bg-bg/90 backdrop-blur-md z-10 pb-4 mb-4 border-b border-black/5 dark:border-white/5 space-y-4">
+              <div className="flex justify-between items-center">
+                <p className="text-xs text-muted font-semibold uppercase tracking-wider">Capítulos ({chapters.length})</p>
+                <button onClick={handleAddNewChapter} className="p-2 bg-accent text-white rounded-full hover:bg-accent/80 transition-colors">
+                  <Plus size={16} />
+                </button>
+              </div>
+              
+              {/* Story Filter */}
+              <select 
+                value={chapterFilter} 
+                onChange={(e) => setChapterFilter(e.target.value)}
+                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:border-accent transition-all"
+              >
+                <option value="all">Todas las historias</option>
+                {stories.map(s => (
+                  <option key={s.id} value={s.id}>{s.title}</option>
+                ))}
+              </select>
             </div>
-            {chapters.map(chapter => (
+
+            {chapters
+              .filter(c => chapterFilter === 'all' || c.storyId === chapterFilter)
+              .map(chapter => (
               <motion.div 
                 key={chapter.id}
                 className={cn(
@@ -1913,7 +2071,12 @@ function AdminView({
                     <span className="text-xs text-muted font-mono">{String(chapter.id).padStart(2, '0')}</span>
                     <div>
                       <h4 className="font-serif font-semibold text-sm truncate max-w-[150px]">{chapter.title}</h4>
-                      <p className="text-[10px] text-muted">{stories.find(s => s.id === chapter.storyId)?.title || 'El Acto'}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[8px] px-1.5 py-0.5 bg-black/5 dark:bg-white/5 rounded text-muted font-mono uppercase tracking-tighter">
+                          {stories.find(s => s.id === chapter.storyId)?.title || 'Sin Historia'}
+                        </span>
+                        <span className="text-[8px] text-muted/40 font-mono">ID: {chapter.id}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

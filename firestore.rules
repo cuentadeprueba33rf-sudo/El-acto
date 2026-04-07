@@ -24,6 +24,22 @@ service cloud.firestore {
     //
     // ===============================================================
 
+    // Collection: stories
+    // Document ID: {storyId}
+    // Fields:
+    //   - id: string (required) - Story ID (slug)
+    //   - title: string (required) - Story title
+    //   - author: string (required) - Story author
+    //   - description: string (required) - Story description
+    //   - coverUrl: string (optional) - Story cover image URL
+    //   - status: string (required) - Story status (Disponible, En Progreso, Próximamente)
+    //   - genres: list (optional) - List of genres
+    //   - chapters: number (optional) - Number of chapters
+    //   - createdAt: timestamp (optional)
+    //   - updatedAt: timestamp (optional)
+    //
+    // ===============================================================
+
     // Helper functions
     function isAuthenticated() {
       return request.auth != null;
@@ -32,6 +48,14 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && 
         (request.auth.token.email == "samuelcasseresbx@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    match /stories/{storyId} {
+      // Public can read all stories
+      allow read, list: if true;
+      
+      // Only admin can create, update, or delete stories
+      allow create, update, delete: if isAdmin();
     }
 
     match /chapters/{chapterId} {
