@@ -3,10 +3,11 @@ export interface Chapter {
   title: string;
   content?: string;
   isLocked: boolean;
+  storyId?: string;
 }
 
 export const CHAPTERS: Chapter[] = [
-  { id: 1, title: "La primera cuerda", isLocked: true, content: `Mi vida es una mierda. No lo digo por drama, lo digo porque me despierto cada mañana sintiendo que el techo de mi cuarto se va a desplomar sobre mí y, sinceramente, a veces espero que lo haga. Todo pesa. El uniforme me pesa, caminar me pesa, respirar en este colegio donde todos parecen tener un lugar menos yo, me pesa. Siempre voy con la cabeza gacha, contando las baldosas del piso para no tener que cruzarme con la mirada de nadie, para que no vean lo roto que estoy por dentro.
+  { id: 1, title: "La primera cuerda", isLocked: true, storyId: 'el-acto', content: `Mi vida es una mierda. No lo digo por drama, lo digo porque me despierto cada mañana sintiendo que el techo de mi cuarto se va a desplomar sobre mí y, sinceramente, a veces espero que lo haga. Todo pesa. El uniforme me pesa, caminar me pesa, respirar en este colegio donde todos parecen tener un lugar menos yo, me pesa. Siempre voy con la cabeza gacha, contando las baldosas del piso para no tener que cruzarme con la mirada de nadie, para que no vean lo roto que estoy por dentro.
 
 Pero ese día... ese maldito día, algo se rompió de forma diferente.
 
@@ -49,30 +50,30 @@ El ruido de los gritos en el patio regresó. Miré el reloj de la pared: era mar
 Mi corazón dio un vuelco. Esta vez no era un recuerdo. Esta vez, él estaba ahí de verdad. Y yo... yo ya sabía lo que iba a pasar.
 
 Uno, dos... empecé a bajar, pero esta vez con la cabeza arriba. Esta vez, el fuego era mío.` },
-  { id: 2, title: "El Ensayo Del Desastre", isLocked: true },
-  { id: 3, title: "El Ensayo Del Desastre", isLocked: true },
-  { id: 4, title: "El precio De La Perfección", isLocked: true },
-  { id: 5, title: "El Eco De un Gol No Metido", isLocked: true },
-  { id: 6, title: "No Es El Comienzo", isLocked: true },
-  { id: 7, title: "Tampoco Es el Comienzo", isLocked: true },
-  { id: 8, title: "La Grieta En El Refugio", isLocked: true },
-  { id: 9, title: "El Desmoronamiento De La Image", isLocked: true },
-  { id: 10, title: "El Bucle", isLocked: true },
-  { id: 11, title: "El Comienzo", isLocked: true },
-  { id: 12, title: "¿Que Pasó?", isLocked: true },
-  { id: 13, title: "La Inercia", isLocked: true },
-  { id: 14, title: "La Tentación Perfecta", isLocked: true },
-  { id: 15, title: "La Membrana De Cristal", isLocked: true },
-  { id: 16, title: "El Eco Del Pasillo", isLocked: true },
-  { id: 17, title: "El Intercambio De Sombras", isLocked: true },
-  { id: 18, title: "La Voz En El Espejo", isLocked: true },
-  { id: 19, title: "El Parásito Del Recuerdo", isLocked: true },
-  { id: 20, title: "El Edén De Los Errores", isLocked: true },
-  { id: 21, title: "El Espejismo De Las Pupilas", isLocked: true },
-  { id: 22, title: "La Inconsistencia Del Yo", isLocked: true },
-  { id: 23, title: "La Despedida De Las Sombras", isLocked: true },
-  { id: 24, title: "El Peso De Los Invisible", isLocked: true },
-  { id: 25, title: "El Desajuste Del Alma", isLocked: true },
-  { id: 26, title: "El Ajuste De Cuentas", isLocked: true },
-  { id: 27, title: "El Acto", isLocked: true },
+  { id: 2, title: "El Ensayo Del Desastre", isLocked: true, storyId: 'el-acto' },
+  { id: 3, title: "El Ensayo Del Desastre", isLocked: true, storyId: 'el-acto' },
+  { id: 4, title: "El precio De La Perfección", isLocked: true, storyId: 'el-acto' },
+  { id: 5, title: "El Eco De un Gol No Metido", isLocked: true, storyId: 'el-acto' },
+  { id: 6, title: "No Es El Comienzo", isLocked: true, storyId: 'el-acto' },
+  { id: 7, title: "Tampoco Es el Comienzo", isLocked: true, storyId: 'el-acto' },
+  { id: 8, title: "La Grieta En El Refugio", isLocked: true, storyId: 'el-acto' },
+  { id: 9, title: "El Desmoronamiento De La Image", isLocked: true, storyId: 'el-acto' },
+  { id: 10, title: "El Bucle", isLocked: true, storyId: 'el-acto' },
+  { id: 11, title: "El Comienzo", isLocked: true, storyId: 'el-acto' },
+  { id: 12, title: "¿Que Pasó?", isLocked: true, storyId: 'el-acto' },
+  { id: 13, title: "La Inercia", isLocked: true, storyId: 'el-acto' },
+  { id: 14, title: "La Tentación Perfecta", isLocked: true, storyId: 'el-acto' },
+  { id: 15, title: "La Membrana De Cristal", isLocked: true, storyId: 'el-acto' },
+  { id: 16, title: "El Eco Del Pasillo", isLocked: true, storyId: 'el-acto' },
+  { id: 17, title: "El Intercambio De Sombras", isLocked: true, storyId: 'el-acto' },
+  { id: 18, title: "La Voz En El Espejo", isLocked: true, storyId: 'el-acto' },
+  { id: 19, title: "El Parásito Del Recuerdo", isLocked: true, storyId: 'el-acto' },
+  { id: 20, title: "El Edén De Los Errores", isLocked: true, storyId: 'el-acto' },
+  { id: 21, title: "El Espejismo De Las Pupilas", isLocked: true, storyId: 'el-acto' },
+  { id: 22, title: "La Inconsistencia Del Yo", isLocked: true, storyId: 'el-acto' },
+  { id: 23, title: "La Despedida De Las Sombras", isLocked: true, storyId: 'el-acto' },
+  { id: 24, title: "El Peso De Los Invisible", isLocked: true, storyId: 'el-acto' },
+  { id: 25, title: "El Desajuste Del Alma", isLocked: true, storyId: 'el-acto' },
+  { id: 26, title: "El Ajuste De Cuentas", isLocked: true, storyId: 'el-acto' },
+  { id: 27, title: "El Acto", isLocked: true, storyId: 'el-acto' },
 ];

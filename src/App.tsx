@@ -138,6 +138,10 @@ export default function App() {
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [view, setView] = useState<'catalog' | 'story-detail' | 'reading' | 'admin'>('catalog');
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [stories, setStories] = useState<StoryInfo[]>(() => {
+    const saved = localStorage.getItem('app-stories');
+    return saved ? JSON.parse(saved) : CATALOG_DATA;
+  });
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [bookmarks, setBookmarks] = useState<Record<number, number>>({});
@@ -448,6 +452,7 @@ export default function App() {
                   <CatalogView 
                     onStorySelect={handleStorySelect}
                     onAuthorClick={handleAdminClick}
+                    stories={stories}
                   />
                 </div>
               ) : view === 'story-detail' ? (
@@ -462,6 +467,7 @@ export default function App() {
                     isAdmin={isAdmin}
                     onAuthorMessageClick={() => setShowThankYou(true)}
                     onBack={goBack}
+                    stories={stories}
                   />
                 </div>
               ) : view === 'reading' ? (
@@ -478,7 +484,9 @@ export default function App() {
                 <AdminView 
                   key="admin" 
                   chapters={chapters} 
-                  onBack={() => setView('home')} 
+                  onBack={() => setView('catalog')} 
+                  stories={stories}
+                  setStories={setStories}
                 />
               )}
             </AnimatePresence>
@@ -597,13 +605,13 @@ export default function App() {
               <div className="hidden md:block w-1/3 relative border-r border-white/5 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black z-10" />
                 <img 
-                  src={CATALOG_DATA.find(s => s.id === selectedStory)?.coverUrl || "https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png"} 
+                  src={stories.find(s => s.id === selectedStory)?.coverUrl || "https://i.postimg.cc/cCqGfwZb/1774848486059-edit-237685009748444.png"} 
                   className="absolute inset-0 w-full h-full object-cover opacity-40 grayscale hover:grayscale-0 transition-all duration-1000 scale-110 hover:scale-100"
                   alt="Atmosphere"
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute bottom-12 left-12 z-20 space-y-2">
-                  <p className="text-accent font-mono text-[10px] uppercase tracking-[0.4em] font-bold">{CATALOG_DATA.find(s => s.id === selectedStory)?.title || 'Obra'}</p>
+                  <p className="text-accent font-mono text-[10px] uppercase tracking-[0.4em] font-bold">{stories.find(s => s.id === selectedStory)?.title || 'Obra'}</p>
                   <h3 className="text-4xl font-serif italic text-white leading-none">Fin de la función.</h3>
                 </div>
               </div>
@@ -644,7 +652,7 @@ export default function App() {
                       "Ha sido una experiencia sorprendente y linda compartir esta historia contigo. Cada palabra fue escrita pensando en el eco que dejaría en tu alma."
                     </p>
                     <p className="text-muted leading-relaxed text-lg">
-                      Espero que <span className="text-white italic">{CATALOG_DATA.find(s => s.id === selectedStory)?.title || 'esta obra'}</span> haya resonado en ti tanto como lo hizo en mí al crearlo. Esta historia ahora también te pertenece.
+                      Espero que <span className="text-white italic">{stories.find(s => s.id === selectedStory)?.title || 'esta obra'}</span> haya resonado en ti tanto como lo hizo en mí al crearlo. Esta historia ahora también te pertenece.
                     </p>
                   </motion.div>
 
@@ -849,20 +857,22 @@ function Navbar({ onAdminClick, onBack }: { onAdminClick: () => void; onBack?: (
 
 function CatalogView({ 
   onStorySelect,
-  onAuthorClick 
+  onAuthorClick,
+  stories
 }: { 
   onStorySelect: (id: string) => void;
   onAuthorClick: () => void;
+  stories: StoryInfo[];
   key?: string | number;
 }) {
   const [activeFilter, setActiveFilter] = useState<Genre>('Todos');
 
   // Extract unique genres from all stories
-  const allGenres = Array.from(new Set(CATALOG_DATA.flatMap(story => story.genres)));
+  const allGenres = Array.from(new Set(stories.flatMap(story => story.genres)));
   const filters: Genre[] = ['Todos', ...allGenres];
 
-  const featuredStory = CATALOG_DATA.find(s => s.isFeatured) || CATALOG_DATA[0];
-  const filteredStories = CATALOG_DATA.filter(story => 
+  const featuredStory = stories.find(s => s.isFeatured) || stories[0];
+  const filteredStories = stories.filter(story => 
     activeFilter === 'Todos' || story.genres.includes(activeFilter)
   );
 
@@ -1176,7 +1186,8 @@ function HomeView({
   onAuthorClick,
   isAdmin,
   onAuthorMessageClick,
-  onBack
+  onBack,
+  stories
 }: { 
   storyId: string;
   onChapterClick: (c: Chapter) => void; 
@@ -1186,9 +1197,10 @@ function HomeView({
   isAdmin: boolean;
   onAuthorMessageClick?: () => void;
   onBack: () => void;
+  stories: StoryInfo[];
   key?: string | number;
 }) {
-  const storyInfo = CATALOG_DATA.find(s => s.id === storyId);
+  const storyInfo = stories.find(s => s.id === storyId);
   const lastBookmarkedId = Object.keys(bookmarks).map(Number).sort((a, b) => b - a)[0];
   const lastChapter = chapters.find(c => c.id === lastBookmarkedId);
 
@@ -1526,111 +1538,124 @@ function HomeView({
 
 function AdminView({ 
   chapters, 
-  onBack 
+  onBack,
+  stories,
+  setStories
 }: { 
   chapters: Chapter[]; 
   onBack: () => void;
+  stories: StoryInfo[];
+  setStories: React.Dispatch<React.SetStateAction<StoryInfo[]>>;
   key?: string | number;
 }) {
+  const [activeTab, setActiveTab] = useState<'stories' | 'chapters'>('stories');
+  
+  // Chapters State
   const [editingChapter, setEditingChapter] = useState<(Chapter & { docId: string }) | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-  const [formData, setFormData] = useState({ id: 0, title: '', content: '', isLocked: true });
-  const [isSaving, setIsSaving] = useState(false);
+  const [isAddingChapter, setIsAddingChapter] = useState(false);
+  const [chapterFormData, setChapterFormData] = useState({ id: 0, title: '', content: '', isLocked: true, storyId: 'el-acto' });
+  const [isSavingChapter, setIsSavingChapter] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
 
-  const handleEdit = (chapter: Chapter & { docId: string }) => {
+  // Stories State
+  const [editingStory, setEditingStory] = useState<StoryInfo | null>(null);
+  const [isAddingStory, setIsAddingStory] = useState(false);
+  const [storyFormData, setStoryFormData] = useState<StoryInfo>({
+    id: '', title: '', author: '', description: '', coverUrl: '', status: 'Próximamente', genres: [], chapters: 0
+  });
+
+  // --- Handlers for Chapters ---
+  const handleEditChapter = (chapter: Chapter & { docId: string }) => {
     setEditingChapter(chapter);
-    setFormData({ id: chapter.id, title: chapter.title, content: chapter.content || '', isLocked: chapter.isLocked });
-    setIsAdding(false);
+    setChapterFormData({ id: chapter.id, title: chapter.title, content: chapter.content || '', isLocked: chapter.isLocked, storyId: chapter.storyId || 'el-acto' });
+    setIsAddingChapter(false);
   };
 
-  const handleAddNew = () => {
+  const handleAddNewChapter = () => {
     const nextId = chapters.length > 0 ? Math.max(...chapters.map(c => c.id)) + 1 : 1;
-    setFormData({ id: nextId, title: '', content: '', isLocked: true });
-    setIsAdding(true);
+    setChapterFormData({ id: nextId, title: '', content: '', isLocked: true, storyId: 'el-acto' });
+    setIsAddingChapter(true);
     setEditingChapter(null);
   };
 
-  const [isPreview, setIsPreview] = useState(false);
-
-  const handleSave = async (e?: React.FormEvent) => {
+  const handleSaveChapter = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (isSaving) return;
+    if (isSavingChapter) return;
     
-    setIsSaving(true);
+    setIsSavingChapter(true);
     try {
       if (editingChapter) {
         await updateDoc(doc(db, 'chapters', editingChapter.docId), {
-          ...formData,
+          ...chapterFormData,
           updatedAt: serverTimestamp()
         });
       } else {
-        await setDoc(doc(db, 'chapters', `chapter-${formData.id}`), {
-          ...formData,
+        await setDoc(doc(db, 'chapters', `chapter-${chapterFormData.id}`), {
+          ...chapterFormData,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
       }
-      if (isAdding) {
-        setIsAdding(false);
+      if (isAddingChapter) {
+        setIsAddingChapter(false);
       }
     } catch (error) {
       console.error("Error saving chapter:", error);
     } finally {
-      setIsSaving(false);
+      setIsSavingChapter(false);
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(formData.content);
-  };
-
-  const wordCount = formData.content.trim() ? formData.content.trim().split(/\s+/).length : 0;
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-      e.preventDefault();
-      handleSave();
-    }
-  };
-
-  const handleDelete = async (docId: string) => {
+  const handleDeleteChapter = async (docId: string) => {
     if (confirm("¿Estás seguro de eliminar este capítulo?")) {
       await deleteDoc(doc(db, 'chapters', docId));
     }
   };
 
-  const toggleLock = async (chapter: Chapter & { docId: string }) => {
+  const toggleLockChapter = async (chapter: Chapter & { docId: string }) => {
     await updateDoc(doc(db, 'chapters', chapter.docId), {
       isLocked: !chapter.isLocked,
       updatedAt: serverTimestamp()
     });
   };
 
-  const handleLogout = () => {
-    signOut(auth).then(onBack);
+  // --- Handlers for Stories ---
+  const handleEditStory = (story: StoryInfo) => {
+    setEditingStory(story);
+    setStoryFormData(story);
+    setIsAddingStory(false);
   };
 
-  const handleReset = async () => {
-    if (confirm("¿Estás seguro de reiniciar todos los capítulos? Esto borrará los cambios actuales y restaurará los 27 capítulos bloqueados.")) {
-      setIsSaving(true);
-      try {
-        for (const c of chapters) {
-          await deleteDoc(doc(db, 'chapters', (c as any).docId));
-        }
-        for (const c of INITIAL_CHAPTERS) {
-          await setDoc(doc(db, 'chapters', `chapter-${c.id}`), {
-            ...c,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          });
-        }
-        alert("Capítulos reiniciados con éxito.");
-      } catch (error) {
-        console.error("Error resetting chapters:", error);
-      } finally {
-        setIsSaving(false);
-      }
+  const handleAddNewStory = () => {
+    setStoryFormData({ id: '', title: '', author: '', description: '', coverUrl: '', status: 'Próximamente', genres: [], chapters: 0 });
+    setIsAddingStory(true);
+    setEditingStory(null);
+  };
+
+  const handleSaveStory = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    let newStories;
+    if (editingStory) {
+      newStories = stories.map(s => s.id === editingStory.id ? storyFormData : s);
+    } else {
+      newStories = [...stories, storyFormData];
     }
+    setStories(newStories);
+    localStorage.setItem('app-stories', JSON.stringify(newStories));
+    setEditingStory(null);
+    setIsAddingStory(false);
+  };
+
+  const handleDeleteStory = (id: string) => {
+    if (confirm("¿Estás seguro de eliminar esta historia?")) {
+      const newStories = stories.filter(s => s.id !== id);
+      setStories(newStories);
+      localStorage.setItem('app-stories', JSON.stringify(newStories));
+    }
+  };
+
+  const handleLogout = () => {
+    signOut(auth).then(onBack);
   };
 
   return (
@@ -1638,263 +1663,273 @@ function AdminView({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="max-w-7xl mx-auto px-6 pt-40 pb-24"
+      className="max-w-7xl mx-auto px-6 pt-32 pb-24"
     >
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 border-b border-white/5 pb-12">
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 border-b border-black/5 dark:border-white/5 pb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
             <ShieldCheck className="text-accent" size={20} />
-            <span className="text-accent font-mono text-[10px] uppercase tracking-[0.5em] font-bold">Terminal de Gestión</span>
+            <span className="text-accent text-xs font-bold uppercase tracking-widest">Panel de Administración</span>
           </div>
-          <h1 className="text-6xl font-serif italic font-bold tracking-tighter">Panel Editorial</h1>
+          <h1 className="text-4xl font-serif font-bold tracking-tight">Gestión de Contenido</h1>
         </div>
         
         <div className="flex items-center gap-4">
           <button 
-            onClick={handleReset}
-            disabled={isSaving}
-            className="px-8 py-3 glass text-muted font-mono text-[10px] uppercase tracking-widest rounded-full hover:bg-white/5 transition-all disabled:opacity-50 flex items-center gap-3"
-          >
-            <RotateCcw size={14} className={isSaving ? "animate-spin" : ""} /> Reiniciar Sistema
-          </button>
-          <button 
-            onClick={handleAddNew}
-            className="px-8 py-3 bg-white text-bg font-bold rounded-full flex items-center gap-3 hover:bg-accent transition-all duration-500 uppercase tracking-widest text-[10px]"
-          >
-            <Plus size={16} /> Nuevo Capítulo
-          </button>
-          <button 
             onClick={handleLogout}
-            className="p-3 glass rounded-full text-red-400/60 hover:text-red-400 hover:bg-red-400/5 transition-all duration-500"
+            className="p-3 glass rounded-full text-red-500 hover:bg-red-500/10 transition-all duration-300"
           >
             <LogOut size={20} />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        {/* Sidebar List */}
-        <div className="lg:col-span-4 space-y-4 h-[75vh] overflow-y-auto pr-4 custom-scrollbar">
-          <div className="sticky top-0 bg-bg/80 backdrop-blur-md z-10 pb-4 mb-4 border-b border-white/5">
-            <p className="text-[9px] font-mono text-muted/40 uppercase tracking-[0.4em]">Índice de Manuscritos ({chapters.length})</p>
-          </div>
-          {chapters.map(chapter => (
-            <motion.div 
-              key={chapter.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className={cn(
-                "p-6 glass rounded-2xl border transition-all duration-500 cursor-pointer group relative overflow-hidden",
-                editingChapter?.id === chapter.id ? "border-accent bg-accent/5" : "border-white/5 hover:border-white/20"
-              )}
-              onClick={() => handleEdit(chapter as Chapter & { docId: string })}
-            >
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-6">
-                  <span className="font-mono text-[10px] text-muted/30 group-hover:text-accent transition-colors">
-                    {String(chapter.id).padStart(2, '0')}
-                  </span>
-                  <span className="font-serif italic text-lg truncate max-w-[180px] group-hover:text-white transition-colors">
-                    {chapter.title}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); toggleLock(chapter as Chapter & { docId: string }); }}
-                    className={cn(
-                      "p-2 rounded-lg transition-all duration-500", 
-                      chapter.isLocked ? "text-muted/30 hover:text-muted" : "text-accent bg-accent/10"
+      {/* Tabs */}
+      <div className="flex gap-4 mb-8">
+        <button 
+          onClick={() => setActiveTab('stories')}
+          className={cn("px-6 py-2 rounded-full text-sm font-semibold transition-all", activeTab === 'stories' ? "bg-accent text-white" : "glass text-muted hover:text-ink")}
+        >
+          Historias
+        </button>
+        <button 
+          onClick={() => setActiveTab('chapters')}
+          className={cn("px-6 py-2 rounded-full text-sm font-semibold transition-all", activeTab === 'chapters' ? "bg-accent text-white" : "glass text-muted hover:text-ink")}
+        >
+          Capítulos
+        </button>
+      </div>
+
+      {activeTab === 'stories' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Sidebar List */}
+          <div className="lg:col-span-4 space-y-4 h-[70vh] overflow-y-auto pr-4 custom-scrollbar">
+            <div className="sticky top-0 bg-bg/90 backdrop-blur-md z-10 pb-4 mb-4 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
+              <p className="text-xs text-muted font-semibold uppercase tracking-wider">Obras ({stories.length})</p>
+              <button onClick={handleAddNewStory} className="p-2 bg-accent text-white rounded-full hover:bg-accent/80 transition-colors">
+                <Plus size={16} />
+              </button>
+            </div>
+            {stories.map(story => (
+              <motion.div 
+                key={story.id}
+                className={cn(
+                  "p-4 glass rounded-xl border transition-all duration-300 cursor-pointer group relative overflow-hidden",
+                  editingStory?.id === story.id ? "border-accent bg-accent/5" : "border-transparent hover:border-black/10 dark:hover:border-white/10"
+                )}
+                onClick={() => handleEditStory(story)}
+              >
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex items-center gap-4">
+                    {story.coverUrl ? (
+                      <img src={story.coverUrl} alt={story.title} className="w-10 h-10 rounded object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-black/5 dark:bg-white/5 flex items-center justify-center"><BookOpen size={16} className="text-muted" /></div>
                     )}
-                  >
-                    {chapter.isLocked ? <Lock size={14} /> : <Unlock size={14} />}
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleDelete((chapter as any).docId); }}
-                    className="p-2 text-muted/20 hover:text-red-400 hover:bg-red-400/5 rounded-lg transition-all duration-500"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-              {editingChapter?.id === chapter.id && (
-                <div className="absolute left-0 top-0 w-1 h-full bg-accent" />
-              )}
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Editor Area */}
-        <div className="lg:col-span-8">
-          {(editingChapter || isAdding) ? (
-            <motion.form 
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              onSubmit={handleSave}
-              className="glass p-12 rounded-[3rem] border-white/10 space-y-10 relative overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <h2 className="text-3xl font-serif italic font-bold flex items-center gap-4">
-                    {isAdding ? 'Nuevo Manuscrito' : `Editando Capítulo ${formData.id}`}
-                  </h2>
-                  <p className="text-[10px] font-mono text-muted/40 uppercase tracking-widest">
-                    {isAdding ? 'Creando entrada en el catálogo' : 'Modificando registro existente'}
-                  </p>
-                </div>
-                <button 
-                  type="button" 
-                  onClick={() => { setEditingChapter(null); setIsAdding(false); }}
-                  className="p-3 glass rounded-full text-muted hover:text-white transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-                <div className="md:col-span-2 space-y-3">
-                  <label className="text-[9px] font-mono text-muted/60 uppercase tracking-[0.3em] ml-2">ID</label>
-                  <input 
-                    type="number" 
-                    value={formData.id}
-                    onChange={e => setFormData({...formData, id: parseInt(e.target.value)})}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-accent outline-none font-mono text-sm transition-all"
-                    required
-                  />
-                </div>
-                <div className="md:col-span-10 space-y-3">
-                  <label className="text-[9px] font-mono text-muted/60 uppercase tracking-[0.3em] ml-2">Título de la Obra</label>
-                  <input 
-                    type="text" 
-                    value={formData.title}
-                    onChange={e => setFormData({...formData, title: e.target.value})}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:border-accent outline-none font-serif italic text-xl transition-all"
-                    placeholder="Escribe el título aquí..."
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between px-2">
-                  <div className="flex items-center gap-6">
-                    <label className="text-[9px] font-mono text-muted/60 uppercase tracking-[0.3em]">Cuerpo del Manuscrito</label>
-                    <div className="flex glass rounded-full p-1">
-                      <button 
-                        type="button"
-                        onClick={() => setIsPreview(false)}
-                        className={cn(
-                          "px-4 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-widest transition-all duration-500",
-                          !isPreview ? "bg-white text-bg font-bold" : "text-muted hover:text-white"
-                        )}
-                      >
-                        Editor
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => setIsPreview(true)}
-                        className={cn(
-                          "px-4 py-1.5 rounded-full text-[9px] font-mono uppercase tracking-widest transition-all duration-500",
-                          isPreview ? "bg-white text-bg font-bold" : "text-muted hover:text-white"
-                        )}
-                      >
-                        Vista Previa
-                      </button>
+                    <div>
+                      <h4 className="font-serif font-semibold text-sm truncate max-w-[150px]">{story.title}</h4>
+                      <p className="text-xs text-muted">{story.author}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <span className="text-[10px] font-mono text-muted/30 uppercase tracking-widest">{wordCount} palabras</span>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleDeleteStory(story.id); }}
+                    className="p-2 text-muted hover:text-red-500 rounded-lg transition-colors"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Editor Area */}
+          <div className="lg:col-span-8">
+            {(editingStory || isAddingStory) ? (
+              <motion.form 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onSubmit={handleSaveStory}
+                className="glass p-8 rounded-2xl space-y-6"
+              >
+                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-4">
+                  <h2 className="text-2xl font-serif font-bold">
+                    {isAddingStory ? 'Nueva Historia' : `Editando: ${storyFormData.title}`}
+                  </h2>
+                  <button type="button" onClick={() => { setEditingStory(null); setIsAddingStory(false); }} className="p-2 text-muted hover:text-ink transition-colors">
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">ID (URL slug)</label>
+                    <input type="text" value={storyFormData.id} onChange={e => setStoryFormData({...storyFormData, id: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" required disabled={!isAddingStory} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Título</label>
+                    <input type="text" value={storyFormData.title} onChange={e => setStoryFormData({...storyFormData, title: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Autor</label>
+                    <input type="text" value={storyFormData.author} onChange={e => setStoryFormData({...storyFormData, author: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Estado</label>
+                    <select value={storyFormData.status} onChange={e => setStoryFormData({...storyFormData, status: e.target.value as any})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all">
+                      <option value="Disponible">Disponible</option>
+                      <option value="En Progreso">En Progreso</option>
+                      <option value="Próximamente">Próximamente</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">URL de Portada</label>
+                    <input type="url" value={storyFormData.coverUrl || ''} onChange={e => setStoryFormData({...storyFormData, coverUrl: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" placeholder="https://..." />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Descripción</label>
+                    <textarea value={storyFormData.description} onChange={e => setStoryFormData({...storyFormData, description: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all h-24 resize-none" required />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Géneros (separados por coma)</label>
+                    <input type="text" value={storyFormData.genres.join(', ')} onChange={e => setStoryFormData({...storyFormData, genres: e.target.value.split(',').map(g => g.trim()).filter(Boolean)})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" placeholder="Sci-Fi, Romance, Drama" />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <button type="submit" className="px-8 py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 transition-all shadow-lg shadow-accent/20">
+                    Guardar Historia
+                  </button>
+                </div>
+              </motion.form>
+            ) : (
+              <div className="h-full flex items-center justify-center text-muted">
+                <p>Selecciona una historia para editar o crea una nueva.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'chapters' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Sidebar List */}
+          <div className="lg:col-span-4 space-y-4 h-[70vh] overflow-y-auto pr-4 custom-scrollbar">
+            <div className="sticky top-0 bg-bg/90 backdrop-blur-md z-10 pb-4 mb-4 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
+              <p className="text-xs text-muted font-semibold uppercase tracking-wider">Capítulos ({chapters.length})</p>
+              <button onClick={handleAddNewChapter} className="p-2 bg-accent text-white rounded-full hover:bg-accent/80 transition-colors">
+                <Plus size={16} />
+              </button>
+            </div>
+            {chapters.map(chapter => (
+              <motion.div 
+                key={chapter.id}
+                className={cn(
+                  "p-4 glass rounded-xl border transition-all duration-300 cursor-pointer group relative overflow-hidden",
+                  editingChapter?.id === chapter.id ? "border-accent bg-accent/5" : "border-transparent hover:border-black/10 dark:hover:border-white/10"
+                )}
+                onClick={() => handleEditChapter(chapter as Chapter & { docId: string })}
+              >
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs text-muted font-mono">{String(chapter.id).padStart(2, '0')}</span>
+                    <div>
+                      <h4 className="font-serif font-semibold text-sm truncate max-w-[150px]">{chapter.title}</h4>
+                      <p className="text-[10px] text-muted">{stories.find(s => s.id === chapter.storyId)?.title || 'El Acto'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <button 
-                      type="button"
-                      onClick={handleCopy}
-                      className="text-accent hover:text-white transition-colors"
-                      title="Copiar Contenido"
+                      onClick={(e) => { e.stopPropagation(); toggleLockChapter(chapter as Chapter & { docId: string }); }}
+                      className={cn("p-2 rounded-lg transition-colors", chapter.isLocked ? "text-muted hover:text-ink" : "text-accent bg-accent/10")}
                     >
-                      <Copy size={16} />
+                      {chapter.isLocked ? <Lock size={14} /> : <Unlock size={14} />}
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleDeleteChapter((chapter as any).docId); }}
+                      className="p-2 text-muted hover:text-red-500 rounded-lg transition-colors"
+                    >
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
-                
-                <div className="relative group">
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Editor Area */}
+          <div className="lg:col-span-8">
+            {(editingChapter || isAddingChapter) ? (
+              <motion.form 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onSubmit={handleSaveChapter}
+                className="glass p-8 rounded-2xl space-y-6"
+              >
+                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-4">
+                  <h2 className="text-2xl font-serif font-bold">
+                    {isAddingChapter ? 'Nuevo Capítulo' : `Editando Capítulo ${chapterFormData.id}`}
+                  </h2>
+                  <button type="button" onClick={() => { setEditingChapter(null); setIsAddingChapter(false); }} className="p-2 text-muted hover:text-ink transition-colors">
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">ID</label>
+                    <input type="number" value={chapterFormData.id} onChange={e => setChapterFormData({...chapterFormData, id: parseInt(e.target.value)})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" required />
+                  </div>
+                  <div className="md:col-span-6 space-y-2">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Título</label>
+                    <input type="text" value={chapterFormData.title} onChange={e => setChapterFormData({...chapterFormData, title: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" required />
+                  </div>
+                  <div className="md:col-span-4 space-y-2">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Historia</label>
+                    <select value={chapterFormData.storyId} onChange={e => setChapterFormData({...chapterFormData, storyId: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all">
+                      {stories.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Contenido</label>
+                    <div className="flex bg-black/5 dark:bg-white/5 rounded-lg p-1">
+                      <button type="button" onClick={() => setIsPreview(false)} className={cn("px-4 py-1.5 rounded-md text-xs font-semibold transition-all", !isPreview ? "bg-white dark:bg-black shadow-sm" : "text-muted")}>Editar</button>
+                      <button type="button" onClick={() => setIsPreview(true)} className={cn("px-4 py-1.5 rounded-md text-xs font-semibold transition-all", isPreview ? "bg-white dark:bg-black shadow-sm" : "text-muted")}>Vista Previa</button>
+                    </div>
+                  </div>
+                  
                   {isPreview ? (
-                    <div className="w-full min-h-[500px] max-h-[60vh] bg-white/[0.02] border border-white/5 rounded-[2rem] px-12 py-12 overflow-y-auto font-serif text-xl leading-relaxed text-white/70 custom-scrollbar">
-                      {formData.content.split(/\n\s*\n/).map((para, i) => (
-                        <p key={i} className="mb-8 first-letter:text-4xl first-letter:text-accent first-letter:mr-2 first-letter:font-bold">
-                          {para}
-                        </p>
-                      ))}
-                      {formData.content === '' && (
-                        <div className="h-full flex flex-col items-center justify-center text-muted/20 py-20">
-                          <FileText size={48} className="mb-4" />
-                          <p className="italic">El manuscrito está vacío...</p>
-                        </div>
-                      )}
+                    <div className="w-full h-[400px] bg-black/5 dark:bg-white/5 rounded-xl p-6 overflow-y-auto custom-scrollbar font-serif text-lg leading-relaxed whitespace-pre-wrap">
+                      {chapterFormData.content || <span className="text-muted italic">Sin contenido...</span>}
                     </div>
                   ) : (
                     <textarea 
-                      value={formData.content}
-                      onChange={e => setFormData({...formData, content: e.target.value})}
-                      onKeyDown={handleKeyDown}
-                      className="w-full min-h-[500px] max-h-[60vh] bg-white/[0.02] border border-white/5 rounded-[2rem] px-10 py-10 focus:border-accent/30 outline-none resize-none font-serif text-xl leading-relaxed text-white/80 custom-scrollbar transition-all duration-700"
-                      placeholder="Comienza a tejer la historia aquí..."
-                      required
+                      value={chapterFormData.content}
+                      onChange={e => setChapterFormData({...chapterFormData, content: e.target.value})}
+                      className="w-full h-[400px] bg-black/5 dark:bg-white/5 border border-transparent rounded-xl p-6 focus:border-accent outline-none font-serif text-lg leading-relaxed resize-none transition-all custom-scrollbar"
+                      placeholder="Escribe el contenido aquí..."
                     />
                   )}
-                  <div className="absolute bottom-6 right-8 pointer-events-none">
-                    <p className="text-[9px] font-mono text-muted/20 uppercase tracking-[0.4em]">Modo Editorial Activo</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col md:flex-row items-center justify-between gap-8 pt-6">
-                <div className="flex items-center gap-8">
-                  <label className="flex items-center gap-4 cursor-pointer group">
-                    <div 
-                      onClick={() => setFormData({...formData, isLocked: !formData.isLocked})}
-                      className={cn(
-                        "w-14 h-7 rounded-full transition-all duration-500 relative border border-white/10",
-                        formData.isLocked ? "bg-white/5" : "bg-accent"
-                      )}
-                    >
-                      <div className={cn(
-                        "absolute top-1 w-5 h-5 rounded-full transition-all duration-500 shadow-lg",
-                        formData.isLocked ? "left-1 bg-muted/40" : "left-8 bg-white"
-                      )} />
-                    </div>
-                    <span className="text-[10px] font-mono uppercase tracking-[0.2em] font-bold text-muted group-hover:text-white transition-colors">
-                      {formData.isLocked ? 'Acceso Restringido' : 'Publicación Abierta'}
-                    </span>
-                  </label>
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <p className="text-[9px] font-mono text-muted/30 uppercase tracking-widest hidden md:block">Presiona Ctrl+S para guardar</p>
-                  <button 
-                    type="submit"
-                    disabled={isSaving}
-                    className="px-12 py-5 bg-white text-bg font-bold rounded-full flex items-center gap-4 hover:bg-accent hover:scale-105 transition-all duration-500 uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-white/5"
-                  >
-                    {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-                    {isAdding ? 'Publicar Obra' : 'Sincronizar Cambios'}
+                <div className="flex justify-end pt-4">
+                  <button type="submit" disabled={isSavingChapter} className="px-8 py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 transition-all shadow-lg shadow-accent/20 disabled:opacity-50 flex items-center gap-2">
+                    {isSavingChapter ? <RotateCcw size={16} className="animate-spin" /> : <Save size={16} />}
+                    Guardar Capítulo
                   </button>
                 </div>
+              </motion.form>
+            ) : (
+              <div className="h-full flex items-center justify-center text-muted">
+                <p>Selecciona un capítulo para editar o crea uno nuevo.</p>
               </div>
-            </motion.form>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-24 glass rounded-[4rem] border-dashed border-white/5 group">
-              <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-muted/20 mb-8 group-hover:scale-110 group-hover:bg-accent/5 group-hover:text-accent/40 transition-all duration-1000">
-                <Edit3 size={48} />
-              </div>
-              <h3 className="text-3xl font-serif italic font-bold text-muted/40">Selecciona un Manuscrito</h3>
-              <p className="text-[10px] font-mono text-muted/20 uppercase tracking-[0.5em] mt-4">
-                Listo para la edición y curaduría de contenido.
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 }
