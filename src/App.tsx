@@ -1667,8 +1667,9 @@ function AdminView({
         setIsAddingChapter(false);
       }
       setEditingChapter(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving chapter:", error);
+      alert("Error al guardar el capítulo: " + error.message);
     } finally {
       setIsSavingChapter(false);
     }
@@ -1702,6 +1703,12 @@ function AdminView({
 
   const handleSaveStory = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    
+    if (!storyFormData.id || storyFormData.id.includes('/')) {
+      alert("El ID de la historia no puede estar vacío ni contener barras (/).");
+      return;
+    }
+
     try {
       if (editingStory) {
         await updateDoc(doc(db, 'stories', editingStory.id), {
@@ -1717,8 +1724,9 @@ function AdminView({
       }
       setEditingStory(null);
       setIsAddingStory(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving story:", error);
+      alert("Error al guardar la historia: " + error.message);
     }
   };
 
