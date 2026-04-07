@@ -812,10 +812,10 @@ function LoadingScreen(_props: { key?: string | number; onAuthorClick?: () => vo
           transition={{ duration: 1, ease: "easeOut" }}
           className="text-center"
         >
-          <span className="text-accent font-mono text-xs tracking-[0.3em] uppercase mb-4 block">
+          <span className="text-accent font-sans text-[10px] tracking-[0.3em] uppercase mb-4 block font-bold">
             Presentando
           </span>
-          <h2 className="text-4xl md:text-6xl font-serif italic tracking-tight">
+          <h2 className="text-4xl md:text-6xl font-display font-bold tracking-tight text-ink">
             Una Historia Original
           </h2>
         </motion.div>
@@ -843,7 +843,7 @@ function LoadingScreen(_props: { key?: string | number; onAuthorClick?: () => vo
                 }
               }}
               className={cn(
-                "text-2xl md:text-4xl font-hand text-accent",
+                "text-2xl md:text-4xl font-serif italic text-accent",
                 char === " " ? "mr-3" : ""
               )}
             >
@@ -869,7 +869,7 @@ function LoadingScreen(_props: { key?: string | number; onAuthorClick?: () => vo
         initial={{ scaleX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ delay: 0.5, duration: 1.5, ease: "easeInOut" }}
-        className="w-24 h-[1px] bg-white/20"
+        className="w-24 h-[1px] bg-border"
       />
     </motion.div>
   );
@@ -894,24 +894,24 @@ function Navbar({
     <motion.nav 
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="fixed top-0 left-0 right-0 h-20 md:h-24 z-50 flex items-center justify-between px-6 md:px-16 backdrop-blur-md border-b border-black/5 dark:border-white/5 bg-bg/80"
+      className="fixed top-0 left-0 right-0 h-20 md:h-24 z-50 flex items-center justify-between px-6 md:px-16 backdrop-blur-md border-b border-border bg-bg/80"
     >
       <div className="flex items-center gap-4 md:gap-8">
         {onBack ? (
           <button 
             onClick={onBack}
-            className="p-2 md:p-3 glass rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-all group"
+            className="p-2 md:p-3 bg-surface border border-border rounded-full hover:bg-ink/5 transition-all group"
           >
-            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform text-ink" />
           </button>
         ) : (
           <div className="flex items-center gap-4 group cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-accent rounded-2xl flex items-center justify-center text-white shadow-lg shadow-accent/20 group-hover:scale-110 transition-all duration-500">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-accent rounded-2xl flex items-center justify-center text-bg shadow-lg shadow-accent/20 group-hover:scale-110 transition-all duration-500">
               <BookOpen size={20} />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl md:text-2xl font-serif italic font-bold tracking-tighter leading-none">Editorial</h1>
-              <p className="text-[8px] md:text-[9px] font-mono text-muted uppercase tracking-[0.4em]">Colectivo Digital</p>
+              <h1 className="text-xl md:text-2xl font-display font-bold tracking-tighter leading-none text-ink">Editorial</h1>
+              <p className="text-[8px] md:text-[9px] font-sans text-muted uppercase tracking-[0.4em]">Colectivo Digital</p>
             </div>
           </div>
         )}
@@ -920,7 +920,7 @@ function Navbar({
       <div className="flex items-center gap-4 md:gap-8">
         <button 
           onClick={() => setIsDarkMode(!isDarkMode)}
-          className="p-2.5 md:p-3.5 glass rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-500 text-muted hover:text-accent"
+          className="p-2.5 md:p-3.5 bg-surface border border-border rounded-full hover:bg-ink/5 transition-all duration-500 text-muted hover:text-accent"
           title={isDarkMode ? "Modo Claro" : "Modo Oscuro"}
         >
           {isDarkMode ? <Sparkles size={18} /> : <Clock size={18} />}
@@ -931,7 +931,7 @@ function Navbar({
             {isAdmin && (
               <button 
                 onClick={onAdminClick}
-                className="px-4 py-2 md:px-6 md:py-2.5 glass rounded-full text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] hover:bg-accent hover:text-white transition-all duration-500 border-accent/20"
+                className="px-4 py-2 md:px-6 md:py-2.5 bg-surface border border-border rounded-full text-[8px] md:text-[10px] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] hover:bg-accent hover:text-bg transition-all duration-500 text-ink"
               >
                 Panel Editorial
               </button>
@@ -944,7 +944,7 @@ function Navbar({
         ) : (
           <button 
             onClick={() => signInWithPopup(auth, googleProvider)}
-            className="px-6 py-2.5 md:px-10 md:py-3 bg-accent text-white text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] rounded-full hover:bg-accent/80 transition-all duration-500 shadow-lg shadow-accent/20"
+            className="px-6 py-2.5 md:px-10 md:py-3 bg-ink text-bg text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] rounded-full hover:bg-accent transition-all duration-500 shadow-lg"
           >
             Ingresar
           </button>
@@ -980,7 +980,7 @@ function CatalogView({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen pt-24 md:pt-40 pb-20 md:pb-32 px-6 md:px-8 max-w-[1400px] mx-auto relative"
+      className="min-h-screen pt-24 md:pt-40 pb-20 md:pb-32 px-6 md:px-12 max-w-[1400px] mx-auto relative"
     >
       {/* Background Decorative Elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
@@ -990,64 +990,28 @@ function CatalogView({
 
       {/* Hero Section - Featured Story */}
       {featuredStory && (
-        <section className="mb-24 md:mb-48">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20 items-center">
-            <div className="lg:col-span-7 relative group">
-              <motion.div 
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.8 }}
-                onClick={() => onStorySelect(featuredStory.id)}
-                className="relative aspect-[16/10] overflow-hidden rounded-2xl md:rounded-[3rem] cursor-pointer border border-white/5 group-hover:border-accent/30 transition-all duration-1000 shadow-2xl"
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
-                {featuredStory.coverUrl ? (
-                  <img 
-                    src={featuredStory.coverUrl} 
-                    className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[2s] ease-out"
-                    alt={featuredStory.title}
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-zinc-900 flex items-center justify-center">
-                    <BookOpen size={48} className="text-white/20" />
-                  </div>
-                )}
-                <div className="absolute bottom-6 left-6 md:bottom-12 md:left-12 z-20 flex items-center gap-3 md:gap-6">
-                  <span className="px-4 py-2 md:px-6 md:py-3 glass rounded-full text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] font-bold">Destacado</span>
-                  <span className="px-4 py-2 md:px-6 md:py-3 glass rounded-full text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] text-accent font-bold">{featuredStory.status}</span>
-                </div>
-              </motion.div>
-              
-              {/* Floating Decorative Text */}
-              <div className="absolute -right-12 top-1/2 -translate-y-1/2 hidden xl:block pointer-events-none">
-                <p className="writing-mode-vertical text-[11px] font-mono text-white/10 uppercase tracking-[0.8em] rotate-180">
-                  LITERATURA CONTEMPORÁNEA • 2026
-                </p>
-              </div>
-            </div>
-
-            <div className="lg:col-span-5 space-y-8 md:space-y-12">
+        <section className="mb-32">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
+            <div className="lg:col-span-7 order-2 lg:order-1 space-y-8">
               <motion.div
-                initial={{ y: 20, opacity: 0 }}
+                initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="space-y-4 md:space-y-6"
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="space-y-6"
               >
                 <div className="flex items-center gap-4">
-                  <div className="h-[1px] w-12 md:w-16 bg-accent" />
-                  <span className="text-accent font-mono text-[9px] md:text-[11px] uppercase tracking-[0.5em] font-bold">Obra Maestra</span>
+                  <div className="h-[1px] w-12 bg-accent" />
+                  <span className="text-accent font-sans text-[10px] uppercase tracking-[0.3em] font-semibold">Obra Destacada</span>
                 </div>
-                <h1 className="text-6xl sm:text-8xl md:text-9xl font-serif italic font-bold tracking-tighter leading-[0.8] text-glow">
-                  {featuredStory.title.split(' ')[0]} <br />
-                  <span className="text-accent">{featuredStory.title.split(' ').slice(1).join(' ')}</span>
+                <h1 className="text-5xl sm:text-7xl lg:text-8xl font-display font-bold tracking-tight leading-[1.05] text-ink">
+                  {featuredStory.title}
                 </h1>
-                <p className="text-muted text-lg md:text-xl font-light leading-relaxed max-w-md font-serif italic opacity-80">
+                <p className="text-muted text-lg md:text-xl font-serif leading-relaxed max-w-xl">
                   {featuredStory.description}
                 </p>
-                <div className="flex flex-wrap gap-2 mt-4">
+                <div className="flex flex-wrap gap-3 pt-2">
                   {featuredStory.genres.map(genre => (
-                    <span key={genre} className="px-3 py-1 rounded-full border border-white/10 text-[9px] font-mono uppercase tracking-widest text-muted">
+                    <span key={genre} className="px-4 py-1.5 rounded-full border border-border text-[10px] font-sans uppercase tracking-widest text-muted">
                       {genre}
                     </span>
                   ))}
@@ -1055,22 +1019,46 @@ function CatalogView({
               </motion.div>
 
               <motion.div
-                initial={{ y: 20, opacity: 0 }}
+                initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="flex items-center gap-6 md:gap-10"
+                transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className="flex items-center gap-6 pt-4"
               >
                 <button 
                   onClick={() => onStorySelect(featuredStory.id)}
-                  className="px-8 py-4 md:px-12 md:py-5 bg-white text-bg font-bold rounded-full hover:bg-accent transition-all duration-500 flex items-center gap-4 group shadow-xl active:scale-95"
+                  className="px-10 py-4 bg-ink text-bg font-sans font-medium rounded-full hover:bg-accent transition-all duration-500 flex items-center gap-3 group"
                 >
-                  <span className="text-[10px] md:text-xs uppercase tracking-[0.2em]">Explorar Obra</span>
-                  <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
+                  <span className="text-[11px] uppercase tracking-[0.2em]">Comenzar Lectura</span>
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </button>
                 {featuredStory.chapters && (
-                  <div className="flex flex-col border-l border-white/10 pl-6 md:pl-10">
-                    <span className="text-[9px] md:text-[11px] font-mono text-muted uppercase tracking-[0.3em]">Capítulos</span>
-                    <span className="text-2xl md:text-3xl font-serif italic font-bold">{featuredStory.chapters}</span>
+                  <div className="flex flex-col border-l border-border pl-6">
+                    <span className="text-[10px] font-sans text-muted uppercase tracking-[0.2em]">Capítulos</span>
+                    <span className="text-2xl font-display font-bold text-ink">{featuredStory.chapters}</span>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+
+            <div className="lg:col-span-5 order-1 lg:order-2">
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                onClick={() => onStorySelect(featuredStory.id)}
+                className="relative aspect-[4/5] overflow-hidden rounded-[2rem] cursor-pointer group shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]"
+              >
+                <div className="absolute inset-0 bg-ink/5 group-hover:bg-transparent transition-colors duration-500 z-10" />
+                {featuredStory.coverUrl ? (
+                  <img 
+                    src={featuredStory.coverUrl} 
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1.5s] ease-out"
+                    alt={featuredStory.title}
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-surface flex items-center justify-center border border-border">
+                    <BookOpen size={48} className="text-muted/20" />
                   </div>
                 )}
               </motion.div>
@@ -1080,76 +1068,65 @@ function CatalogView({
       )}
 
       {/* Grid Section - Catalog */}
-      <section className="mb-24 md:mb-48 space-y-12 md:space-y-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-black/5 dark:border-white/5 pb-10 gap-8">
-          <div className="space-y-4">
-            <span className="text-accent font-mono text-[9px] md:text-[11px] uppercase tracking-[0.5em] font-bold">Curaduría Editorial</span>
-            <h2 className="text-4xl md:text-7xl font-serif italic font-bold tracking-tighter">Explorar Catálogo</h2>
+      <section className="mb-32 space-y-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-border pb-8 gap-8">
+          <div className="space-y-3">
+            <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-ink">Catálogo Editorial</h2>
           </div>
-          <div className="text-[9px] md:text-[11px] font-mono text-muted uppercase tracking-[0.4em] flex flex-wrap items-center gap-4 md:gap-8">
-            <span className="opacity-40">Filtrar por:</span> 
+          <div className="flex flex-wrap items-center gap-2 md:gap-4">
             {filters.map(filter => (
-              <span 
+              <button 
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
                 className={cn(
-                  "cursor-pointer transition-all duration-500 px-4 py-2 rounded-full border",
+                  "px-4 py-2 rounded-full text-[10px] font-sans uppercase tracking-widest transition-all duration-300",
                   activeFilter === filter 
-                    ? "text-white border-accent bg-accent/10 font-bold" 
-                    : "border-transparent hover:border-black/10 dark:hover:border-white/10 hover:text-white"
+                    ? "bg-ink text-bg font-medium" 
+                    : "bg-surface border border-border text-muted hover:border-ink/30 hover:text-ink"
                 )}
               >
                 {filter}
-              </span>
+              </button>
             ))}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:gap-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12 md:gap-x-10 md:gap-y-16">
           {filteredStories.map((story, index) => (
             <motion.div 
               key={story.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.05 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ delay: index * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
               onClick={() => onStorySelect(story.id)}
-              className="group cursor-pointer space-y-6"
+              className="group cursor-pointer flex flex-col"
             >
-              <div className="relative aspect-[3/4.5] overflow-hidden rounded-2xl md:rounded-[2rem] border border-black/5 dark:border-white/5 shadow-xl group-hover:shadow-accent/20 transition-all duration-700">
+              <div className="relative aspect-[2/3] overflow-hidden rounded-xl border border-border bg-surface shadow-sm group-hover:shadow-xl transition-all duration-500 mb-5">
                 {story.coverUrl ? (
                   <img 
                     src={story.coverUrl} 
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 ease-out"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     alt={story.title}
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-zinc-900 flex flex-col items-center justify-center p-6 text-center">
-                    <BookOpen size={32} className="text-white/10 mb-4" />
-                    <span className="text-[10px] font-mono text-white/20 uppercase tracking-widest">{story.title}</span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-surface">
+                    <BookOpen size={24} className="text-muted/20 mb-3" />
+                    <span className="text-[9px] font-sans text-muted uppercase tracking-widest">{story.title}</span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                <div className="absolute bottom-4 left-4 right-4 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-700">
-                  <button className="w-full py-3 bg-white text-bg text-[10px] font-bold uppercase tracking-widest rounded-xl">Leer Ahora</button>
-                </div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
                 
                 {story.status === 'Próximamente' && (
-                  <div className="absolute top-4 right-4">
-                    <span className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-[8px] font-mono uppercase tracking-widest rounded-full border border-white/10">Pronto</span>
+                  <div className="absolute top-3 right-3">
+                    <span className="px-3 py-1 bg-surface/90 backdrop-blur-md text-ink text-[8px] font-sans font-medium uppercase tracking-widest rounded-full shadow-sm">Pronto</span>
                   </div>
                 )}
               </div>
-              <div className="space-y-2 px-2">
-                <h3 className="font-serif font-bold text-xl md:text-2xl leading-tight group-hover:text-accent transition-colors duration-500 truncate">{story.title}</h3>
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-mono text-muted uppercase tracking-widest">{story.author}</p>
-                  <div className="flex items-center gap-1 text-accent">
-                    <Star size={10} fill="currentColor" />
-                    <span className="text-[10px] font-mono font-bold">4.9</span>
-                  </div>
-                </div>
+              <div className="space-y-1.5 flex-grow">
+                <h3 className="font-display font-bold text-lg md:text-xl leading-tight text-ink group-hover:text-accent transition-colors duration-300">{story.title}</h3>
+                <p className="text-[10px] font-sans text-muted uppercase tracking-widest">{story.author}</p>
               </div>
             </motion.div>
           ))}
@@ -1164,15 +1141,15 @@ function CatalogView({
             initial={{ y: 20, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
-            className="group relative aspect-[3/4] md:aspect-[3/4.5] overflow-hidden rounded-2xl md:rounded-[3rem] bg-zinc-900/20 border border-black/5 dark:border-white/5 hover:border-accent/30 transition-all duration-1000 p-8 md:p-16 flex flex-col justify-between"
+            className="group relative aspect-[3/4] md:aspect-[3/4.5] overflow-hidden rounded-[2rem] bg-surface border border-border hover:border-accent/30 transition-all duration-1000 p-8 md:p-16 flex flex-col justify-between shadow-sm hover:shadow-xl"
           >
             <div className="space-y-6 md:space-y-8">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-accent/10 rounded-xl md:rounded-2xl text-accent flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-accent/10 rounded-2xl text-accent flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
                 <Users size={24} />
               </div>
               <div className="space-y-3 md:space-y-4">
-                <h3 className="text-3xl md:text-4xl font-serif italic font-bold">Colaboradores</h3>
-                <p className="text-muted text-base md:text-lg leading-relaxed font-light font-serif italic">
+                <h3 className="text-3xl md:text-4xl font-display font-bold text-ink">Colaboradores</h3>
+                <p className="text-muted text-base md:text-lg leading-relaxed font-serif">
                   "Buscamos voces únicas que deseen desafiar los límites de la narrativa convencional."
                 </p>
               </div>
@@ -1180,12 +1157,12 @@ function CatalogView({
             <div className="space-y-6 md:space-y-8">
               <div className="flex -space-x-4 md:-space-x-5">
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-bg bg-black/10 dark:bg-zinc-800 flex items-center justify-center text-[9px] md:text-[11px] font-mono shadow-xl">
+                  <div key={i} className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-surface bg-bg flex items-center justify-center text-[9px] md:text-[11px] font-sans font-medium shadow-sm text-ink">
                     {i === 1 ? 'C' : i === 2 ? 'S' : i === 3 ? 'A' : '+'}
                   </div>
                 ))}
               </div>
-              <button className="w-full py-4 md:py-5 glass rounded-full text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-500 hover:text-accent">
+              <button className="w-full py-4 md:py-5 border border-border rounded-full text-[10px] md:text-[11px] font-sans font-medium uppercase tracking-[0.2em] hover:bg-ink hover:text-bg transition-all duration-500 text-ink">
                 Unirse al Colectivo
               </button>
             </div>
@@ -1196,77 +1173,84 @@ function CatalogView({
             initial={{ y: 20, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
-            className="group relative aspect-[3/4] md:aspect-[3/4.5] overflow-hidden rounded-2xl md:rounded-[3rem] bg-zinc-900/20 border border-black/5 dark:border-white/5 hover:border-accent/30 transition-all duration-1000 p-8 md:p-16 flex flex-col justify-between"
+            className="group relative aspect-[3/4] md:aspect-[3/4.5] overflow-hidden rounded-[2rem] bg-surface border border-border hover:border-accent/30 transition-all duration-1000 p-8 md:p-16 flex flex-col justify-between shadow-sm hover:shadow-xl"
           >
             <div className="space-y-6 md:space-y-8">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-accent/10 rounded-xl md:rounded-2xl text-accent flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-accent/10 rounded-2xl text-accent flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
                 <Star size={24} />
               </div>
               <div className="space-y-3 md:space-y-4">
-                <h3 className="text-3xl md:text-4xl font-serif italic font-bold">Personajes</h3>
-                <p className="text-muted text-base md:text-lg leading-relaxed font-light font-serif italic">
-                  "Explora los secretos y perfiles de las figuras más icónicas de nuestras historias."
+                <h3 className="text-3xl md:text-4xl font-display font-bold text-ink">Personajes</h3>
+                <p className="text-muted text-base md:text-lg leading-relaxed font-serif">
+                  "Conoce a los protagonistas que han marcado un antes y un después en nuestras historias."
                 </p>
               </div>
             </div>
-            <div className="relative glass p-6 md:p-8 rounded-2xl md:rounded-3xl border-dashed border-black/10 dark:border-white/10 text-center group-hover:border-accent/40 transition-colors">
-              <span className="text-[9px] md:text-[11px] font-mono uppercase tracking-[0.4em] text-accent animate-pulse font-bold">Muy Pronto</span>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="aspect-square rounded-2xl bg-bg flex flex-col items-center justify-center gap-2 border border-border hover:border-accent/30 transition-colors cursor-pointer">
+                <span className="text-2xl md:text-3xl font-display font-bold text-ink">H</span>
+                <span className="text-[8px] md:text-[10px] font-sans uppercase tracking-widest text-muted">Hana</span>
+              </div>
+              <div className="aspect-square rounded-2xl bg-bg flex flex-col items-center justify-center gap-2 border border-border hover:border-accent/30 transition-colors cursor-pointer">
+                <span className="text-2xl md:text-3xl font-display font-bold text-ink">S</span>
+                <span className="text-[8px] md:text-[10px] font-sans uppercase tracking-widest text-muted">Sam</span>
+              </div>
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* Catalog Footer */}
-      <footer className="pt-20 md:pt-32 border-t border-white/5 flex flex-col lg:flex-row justify-between items-start gap-16 md:gap-20">
+      <footer className="pt-20 md:pt-32 border-t border-border flex flex-col lg:flex-row justify-between items-start gap-16 md:gap-20">
         <div className="space-y-6 md:space-y-8 max-w-md">
           <div className="flex flex-col">
-            <span className="text-3xl md:text-4xl font-serif italic font-bold tracking-tighter leading-none">SAM C.</span>
-            <span className="text-[9px] md:text-[10px] font-mono uppercase tracking-[0.6em] text-accent font-bold">Editorial</span>
+            <span className="text-3xl md:text-4xl font-display font-bold tracking-tight leading-none text-ink">SAM C.</span>
+            <span className="text-[9px] md:text-[10px] font-sans uppercase tracking-[0.6em] text-accent font-bold mt-2">Editorial</span>
           </div>
-          <p className="text-sm font-serif italic text-muted leading-relaxed opacity-70">
+          <p className="text-sm font-serif text-muted leading-relaxed">
             "Dedicados a la excelencia narrativa y la innovación visual. Creando puentes entre la imaginación y la realidad a través de la palabra escrita."
           </p>
           <div className="flex gap-4 md:gap-6">
-            <button className="p-3 md:p-4 glass rounded-full hover:text-accent transition-all duration-500 hover:scale-110"><Share2 size={18} /></button>
-            <button className="p-3 md:p-4 glass rounded-full hover:text-accent transition-all duration-500 hover:scale-110"><Heart size={18} /></button>
+            <button className="p-3 md:p-4 bg-surface border border-border rounded-full hover:text-accent transition-all duration-500 hover:scale-110 text-ink"><Share2 size={18} /></button>
+            <button className="p-3 md:p-4 bg-surface border border-border rounded-full hover:text-accent transition-all duration-500 hover:scale-110 text-ink"><Heart size={18} /></button>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 md:gap-20 w-full lg:w-auto">
           <div className="space-y-4 md:space-y-6">
-            <span className="text-white font-mono text-[10px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Explorar</span>
-            <div className="flex flex-col gap-3 md:gap-4 text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] text-muted">
-              <button className="hover:text-accent transition-colors text-left">Catálogo</button>
-              <button className="hover:text-accent transition-colors text-left">Autores</button>
-              <button className="hover:text-accent transition-colors text-left">Novedades</button>
+            <span className="text-ink font-sans text-[10px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Explorar</span>
+            <div className="flex flex-col gap-3 md:gap-4 text-[9px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-muted">
+              <button className="hover:text-ink transition-colors text-left">Catálogo</button>
+              <button className="hover:text-ink transition-colors text-left">Autores</button>
+              <button className="hover:text-ink transition-colors text-left">Novedades</button>
             </div>
           </div>
           <div className="space-y-4 md:space-y-6">
-            <span className="text-white font-mono text-[10px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Legal</span>
-            <div className="flex flex-col gap-3 md:gap-4 text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] text-muted">
-              <button className="hover:text-accent transition-colors text-left">Privacidad</button>
-              <button className="hover:text-accent transition-colors text-left">Términos</button>
-              <button className="hover:text-accent transition-colors text-left">Cookies</button>
+            <span className="text-ink font-sans text-[10px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Legal</span>
+            <div className="flex flex-col gap-3 md:gap-4 text-[9px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-muted">
+              <button className="hover:text-ink transition-colors text-left">Privacidad</button>
+              <button className="hover:text-ink transition-colors text-left">Términos</button>
+              <button className="hover:text-ink transition-colors text-left">Cookies</button>
             </div>
           </div>
           <div className="space-y-4 md:space-y-6">
-            <span className="text-white font-mono text-[10px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Social</span>
-            <div className="flex flex-col gap-3 md:gap-4 text-[9px] md:text-[11px] font-mono uppercase tracking-[0.3em] text-muted">
-              <button className="hover:text-accent transition-colors text-left">Instagram</button>
-              <button className="hover:text-accent transition-colors text-left">Twitter</button>
-              <button className="hover:text-accent transition-colors text-left">LinkedIn</button>
+            <span className="text-ink font-sans text-[10px] md:text-[11px] uppercase tracking-[0.4em] font-bold">Social</span>
+            <div className="flex flex-col gap-3 md:gap-4 text-[9px] md:text-[11px] font-sans uppercase tracking-[0.3em] text-muted">
+              <button className="hover:text-ink transition-colors text-left">Instagram</button>
+              <button className="hover:text-ink transition-colors text-left">Twitter</button>
+              <button className="hover:text-ink transition-colors text-left">LinkedIn</button>
             </div>
           </div>
         </div>
       </footer>
       
-      <div className="mt-20 md:mt-32 pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
-        <p className="text-[8px] md:text-[10px] font-mono text-muted/30 tracking-[0.5em] uppercase text-center md:text-left">
+      <div className="mt-20 md:mt-32 pt-12 border-t border-border flex flex-col md:flex-row justify-between items-center gap-8">
+        <p className="text-[8px] md:text-[10px] font-sans text-muted tracking-[0.5em] uppercase text-center md:text-left">
           © 2026 SAM C. EDITORIAL • TODOS LOS DERECHOS RESERVADOS
         </p>
         <div className="flex items-center gap-4">
           <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-accent animate-pulse" />
-          <span className="text-[8px] md:text-[10px] font-mono text-accent uppercase tracking-widest">En Línea</span>
+          <span className="text-[8px] md:text-[10px] font-sans text-accent uppercase tracking-widest">En Línea</span>
         </div>
       </div>
     </motion.div>
@@ -1312,42 +1296,42 @@ function HomeView({
         {/* Atmospheric Background */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-accent/5 blur-[120px] rounded-full animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-white/5 blur-[100px] rounded-full animate-pulse delay-700" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-accent/5 blur-[100px] rounded-full animate-pulse delay-700" />
         </div>
 
         <div className="space-y-12 relative z-10">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-48 h-48 bg-accent/5 rounded-full flex items-center justify-center mx-auto text-accent border border-accent/10 relative group"
+            className="w-48 h-48 bg-surface rounded-full flex items-center justify-center mx-auto text-accent border border-border relative group shadow-xl"
           >
-            <div className="absolute inset-0 bg-accent/10 blur-3xl rounded-full group-hover:bg-accent/20 transition-colors duration-1000" />
+            <div className="absolute inset-0 bg-accent/5 blur-3xl rounded-full group-hover:bg-accent/10 transition-colors duration-1000" />
             <Clock size={72} className="relative z-10 animate-pulse" />
           </motion.div>
           
           <div className="space-y-6">
             <div className="flex items-center justify-center gap-4">
               <div className="h-[1px] w-12 bg-accent/30" />
-              <span className="text-accent font-mono text-[10px] tracking-[0.5em] uppercase font-bold">{storyInfo.status}</span>
+              <span className="text-accent font-sans text-[10px] tracking-[0.5em] uppercase font-bold">{storyInfo.status}</span>
               <div className="h-[1px] w-12 bg-accent/30" />
             </div>
-            <h1 className="text-7xl md:text-[10rem] font-serif italic font-bold tracking-tighter leading-none">{storyInfo.title}</h1>
-            <p className="text-muted font-mono uppercase tracking-[0.5em] text-xs">Una Obra de {storyInfo.author}</p>
+            <h1 className="text-7xl md:text-[10rem] font-display font-bold tracking-tighter leading-none text-ink">{storyInfo.title}</h1>
+            <p className="text-muted font-sans uppercase tracking-[0.5em] text-xs">Una Obra de {storyInfo.author}</p>
           </div>
         </div>
 
-        <div className="max-w-2xl glass p-16 rounded-[4rem] border-accent/10 space-y-10 relative overflow-hidden group hover:border-accent/30 transition-colors duration-700">
+        <div className="max-w-2xl bg-surface p-16 rounded-[4rem] border border-border shadow-2xl space-y-10 relative overflow-hidden group hover:border-accent/30 transition-colors duration-700">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
           <div className="space-y-6">
-            <h3 className="text-3xl font-serif italic font-bold">En Construcción Editorial</h3>
-            <p className="text-muted leading-relaxed text-xl font-light">
+            <h3 className="text-3xl font-display font-bold text-ink">En Construcción Editorial</h3>
+            <p className="text-muted leading-relaxed text-xl font-serif">
               Estamos curando meticulosamente cada palabra de este nuevo universo. {storyInfo.releaseDate && <span className="text-accent font-bold">{storyInfo.releaseDate}</span>}
             </p>
           </div>
           <div className="pt-6">
             <button 
               onClick={onBack}
-              className="px-16 py-5 bg-white text-bg font-bold rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 uppercase tracking-[0.2em] text-[10px]"
+              className="px-16 py-5 bg-ink text-bg font-sans font-medium rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 uppercase tracking-[0.2em] text-[10px]"
             >
               Volver al Catálogo
             </button>
@@ -1379,26 +1363,26 @@ function HomeView({
               <img 
                 src={storyInfo.coverUrl} 
                 alt={`${storyInfo.title} Portada`} 
-                className="w-full aspect-[3/4.5] object-cover rounded-2xl md:rounded-3xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.9)] md:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.9)] relative z-10 border border-white/5 group-hover:scale-[1.01] transition-transform duration-1000"
+                className="w-full aspect-[3/4.5] object-cover rounded-2xl md:rounded-3xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] md:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_40px_80px_-15px_rgba(0,0,0,0.5)] relative z-10 border border-border group-hover:scale-[1.01] transition-transform duration-1000"
                 referrerPolicy="no-referrer"
               />
             ) : (
-              <div className="w-full aspect-[3/4.5] bg-zinc-900 rounded-2xl md:rounded-3xl flex items-center justify-center border border-white/5 relative z-10">
-                <BookOpen size={64} className="text-white/20" />
+              <div className="w-full aspect-[3/4.5] bg-surface rounded-2xl md:rounded-3xl flex items-center justify-center border border-border relative z-10">
+                <BookOpen size={64} className="text-muted/20" />
               </div>
             )}
           </div>
           
           {/* Floating Stats */}
-          <div className="absolute -bottom-6 -right-6 md:-bottom-12 md:-right-12 glass p-4 md:p-8 rounded-2xl md:rounded-3xl border-white/10 z-20 hidden sm:block animate-float">
+          <div className="absolute -bottom-6 -right-6 md:-bottom-12 md:-right-12 bg-surface p-4 md:p-8 rounded-2xl md:rounded-3xl border border-border shadow-xl z-20 hidden sm:block animate-float">
             <div className="space-y-2 md:space-y-4">
               <div className="flex items-center gap-3 md:gap-4">
                 <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent">
                   <BookOpen size={16} md:size={18} />
                 </div>
                 <div>
-                  <p className="text-[8px] md:text-[10px] font-mono text-muted uppercase tracking-widest">Volumen</p>
-                  <p className="text-sm md:text-lg font-serif italic font-bold">Completo</p>
+                  <p className="text-[8px] md:text-[10px] font-sans text-muted uppercase tracking-widest">Volumen</p>
+                  <p className="text-sm md:text-lg font-display font-bold text-ink">Completo</p>
                 </div>
               </div>
             </div>
@@ -1414,39 +1398,33 @@ function HomeView({
           <div className="space-y-6 md:space-y-8">
             <div className="flex items-center gap-4">
               <div className="h-[1px] w-12 md:w-16 bg-accent" />
-              <span className="text-accent font-mono text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Colección Original</span>
+              <span className="text-accent font-sans text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Colección Original</span>
             </div>
-            <h1 className="text-6xl sm:text-8xl md:text-[10rem] font-serif font-bold tracking-tighter leading-[0.85]">
-              <ShinyText 
-                text={storyInfo.title} 
-                speed={1.6} 
-                color="#ffffff" 
-                shineColor="#f27d26" 
-                spread={120}
-              />
+            <h1 className="text-6xl sm:text-8xl md:text-[10rem] font-display font-bold tracking-tighter leading-[0.85] text-ink">
+              {storyInfo.title}
             </h1>
-            <div className="flex flex-wrap items-center gap-4 md:gap-6 text-muted font-mono text-[9px] md:text-[11px] uppercase tracking-[0.3em]">
+            <div className="flex flex-wrap items-center gap-4 md:gap-6 text-muted font-sans text-[9px] md:text-[11px] uppercase tracking-[0.3em]">
               <span>Escrito por {storyInfo.author}</span>
               <div className="w-1 h-1 rounded-full bg-accent hidden sm:block" />
               <span>{storyInfo.genres.join(' • ')}</span>
             </div>
-            <p className="text-muted/80 text-xl md:text-2xl leading-relaxed font-light max-w-2xl font-serif italic">
+            <p className="text-muted text-xl md:text-2xl leading-relaxed font-serif max-w-2xl">
               {storyInfo.description}
             </p>
           </div>
           
-          <div className="grid grid-cols-3 gap-6 md:gap-12 border-y border-white/5 py-8 md:py-10">
+          <div className="grid grid-cols-3 gap-6 md:gap-12 border-y border-border py-8 md:py-10">
             <div className="space-y-1 md:space-y-2">
-              <span className="text-white/40 font-mono text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Capítulos</span>
-              <p className="text-xl md:text-3xl font-serif italic font-bold">{storyInfo.chapters || chapters.length}</p>
+              <span className="text-muted font-sans text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Capítulos</span>
+              <p className="text-xl md:text-3xl font-display font-bold text-ink">{storyInfo.chapters || chapters.length}</p>
             </div>
             <div className="space-y-1 md:space-y-2">
-              <span className="text-white/40 font-mono text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Lectores</span>
-              <p className="text-xl md:text-3xl font-serif italic font-bold">1.2k+</p>
+              <span className="text-muted font-sans text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Lectores</span>
+              <p className="text-xl md:text-3xl font-display font-bold text-ink">1.2k+</p>
             </div>
             <div className="space-y-1 md:space-y-2">
-              <span className="text-white/40 font-mono text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Calificación</span>
-              <p className="text-xl md:text-3xl font-serif italic font-bold">4.9/5</p>
+              <span className="text-muted font-sans text-[8px] md:text-[9px] uppercase tracking-[0.4em]">Calificación</span>
+              <p className="text-xl md:text-3xl font-display font-bold text-ink">4.9/5</p>
             </div>
           </div>
 
@@ -1460,7 +1438,7 @@ function HomeView({
                   alert('Los capítulos de esta obra estarán disponibles próximamente.');
                 }
               }}
-              className="flex-1 sm:flex-none px-8 py-5 md:px-16 md:py-6 bg-white text-bg font-bold rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
+              className="flex-1 sm:flex-none px-8 py-5 md:px-16 md:py-6 bg-ink text-bg font-sans font-medium rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
             >
               {lastChapter && chapters.filter(c => c.storyId === storyId).some(c => c.id === lastChapter.id) ? 'Reiniciar Lectura' : 'Comenzar Experiencia'}
               <ArrowRight size={16} md:size={18} className="group-hover:translate-x-2 transition-transform duration-500" />
@@ -1469,14 +1447,14 @@ function HomeView({
             {lastChapter && chapters.filter(c => c.storyId === storyId).some(c => c.id === lastChapter.id) && (
               <button 
                 onClick={() => onChapterClick(lastChapter)}
-                className="flex-1 sm:flex-none px-8 py-5 md:px-16 md:py-6 glass text-white font-bold rounded-full hover:bg-white/10 hover:scale-105 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
+                className="flex-1 sm:flex-none px-8 py-5 md:px-16 md:py-6 bg-surface border border-border text-ink font-sans font-medium rounded-full hover:bg-ink/5 hover:scale-105 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
               >
                 Continuar Cap. {lastChapter.id}
                 <Bookmark size={16} md:size={18} className="text-accent group-hover:scale-125 transition-transform duration-500" />
               </button>
             )}
 
-            <button className="p-5 md:p-6 glass rounded-full hover:bg-white/10 hover:scale-110 transition-all duration-500 text-muted hover:text-white">
+            <button className="p-5 md:p-6 bg-surface border border-border rounded-full hover:bg-ink/5 hover:scale-110 transition-all duration-500 text-muted hover:text-ink">
               <Share2 size={20} md:size={22} />
             </button>
           </div>
@@ -1485,15 +1463,15 @@ function HomeView({
 
       {/* Chapter List - Table of Contents Style */}
       <div className="space-y-12 md:space-y-20">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 border-b border-black/5 dark:border-white/5 pb-8 md:pb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 md:gap-8 border-b border-border pb-8 md:pb-12">
           <div className="space-y-3 md:space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-accent" />
-              <span className="text-accent font-mono text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Estructura</span>
+              <span className="text-accent font-sans text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Estructura</span>
             </div>
-            <h2 className="text-4xl md:text-7xl font-serif italic font-bold tracking-tighter">Tabla de Contenidos</h2>
+            <h2 className="text-4xl md:text-7xl font-display font-bold tracking-tight text-ink">Tabla de Contenidos</h2>
           </div>
-          <p className="text-muted font-mono text-[9px] md:text-[11px] uppercase tracking-[0.4em] max-w-xs md:text-right">
+          <p className="text-muted font-sans text-[9px] md:text-[11px] uppercase tracking-[0.4em] max-w-xs md:text-right">
             Selecciona un fragmento para sumergirte en la narrativa.
           </p>
         </div>
@@ -1509,29 +1487,29 @@ function HomeView({
                 transition={{ delay: index * 0.05 }}
                 onClick={() => onChapterClick(chapter)}
                 className={cn(
-                  "group p-6 md:p-10 glass rounded-2xl md:rounded-[2.5rem] border transition-all duration-700 cursor-pointer relative overflow-hidden flex flex-col justify-between min-h-[200px] md:min-h-[280px]",
-                  chapter.isLocked ? "border-black/5 dark:border-white/5 opacity-60" : "border-black/10 dark:border-white/10 hover:border-accent/40 hover:bg-accent/[0.02]"
+                  "group p-6 md:p-10 bg-surface rounded-2xl md:rounded-[2.5rem] border transition-all duration-700 cursor-pointer relative overflow-hidden flex flex-col justify-between min-h-[200px] md:min-h-[280px] shadow-sm hover:shadow-xl",
+                  chapter.isLocked ? "border-border opacity-60" : "border-border hover:border-accent/40 hover:bg-accent/[0.02]"
                 )}
               >
                 <div className="space-y-4 md:space-y-6 relative z-10">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] md:text-[12px] font-mono text-accent font-bold tracking-[0.3em] uppercase">Capítulo {String(chapter.id).padStart(2, '0')}</span>
+                    <span className="text-[10px] md:text-[12px] font-sans text-accent font-bold tracking-[0.3em] uppercase">Capítulo {String(chapter.id).padStart(2, '0')}</span>
                     {chapter.isLocked ? (
                       <Lock size={14} md:size={16} className="text-muted/40 group-hover:text-accent transition-colors duration-700" />
                     ) : (
                       <Sparkles size={14} md:size={16} className="text-accent animate-pulse" />
                     )}
                   </div>
-                  <h3 className="text-2xl md:text-3xl font-serif italic font-bold leading-tight group-hover:text-white transition-colors duration-700">
+                  <h3 className="text-2xl md:text-3xl font-display font-bold leading-tight text-ink group-hover:text-accent transition-colors duration-700">
                     {chapter.title}
                   </h3>
                 </div>
 
-                <div className="flex items-center justify-between pt-6 border-t border-black/5 dark:border-white/5 relative z-10">
-                  <span className="text-[8px] md:text-[10px] font-mono text-muted/40 uppercase tracking-widest group-hover:text-muted transition-colors duration-700">
+                <div className="flex items-center justify-between pt-6 border-t border-border relative z-10">
+                  <span className="text-[8px] md:text-[10px] font-sans text-muted uppercase tracking-widest group-hover:text-ink transition-colors duration-700">
                     {chapter.isLocked ? 'Acceso Restringido' : 'Lectura Disponible'}
                   </span>
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-accent group-hover:text-bg transition-all duration-700">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-bg flex items-center justify-center group-hover:bg-accent group-hover:text-bg transition-all duration-700 border border-border">
                     <ArrowRight size={14} md:size={16} className="group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
@@ -1541,10 +1519,10 @@ function HomeView({
               </motion.div>
             ))
           ) : (
-            <div className="col-span-full py-20 text-center glass rounded-[3rem] border-dashed border-black/10 dark:border-white/10">
+            <div className="col-span-full py-20 text-center bg-surface rounded-[3rem] border-dashed border-border shadow-sm">
               <BookOpen size={48} className="mx-auto text-muted/20 mb-6" />
-              <h3 className="text-2xl font-serif italic font-bold text-muted/40">Próximamente</h3>
-              <p className="text-xs font-mono text-muted/20 uppercase tracking-[0.5em] mt-4">Estamos preparando los capítulos de esta obra.</p>
+              <h3 className="text-2xl font-display font-bold text-muted">Próximamente</h3>
+              <p className="text-xs font-sans text-muted uppercase tracking-[0.5em] mt-4">Estamos preparando los capítulos de esta obra.</p>
             </div>
           )}
         </div>
@@ -1555,31 +1533,31 @@ function HomeView({
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        className="mt-24 md:mt-48 glass p-8 md:p-20 rounded-[2rem] md:rounded-[4rem] border-white/5 relative overflow-hidden group"
+        className="mt-24 md:mt-48 bg-surface p-8 md:p-20 rounded-[2rem] md:rounded-[4rem] border border-border shadow-xl relative overflow-hidden group"
       >
         <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-accent/5 blur-[80px] md:blur-[120px] rounded-full -mr-32 -mt-32 md:-mr-48 md:-mt-48 group-hover:bg-accent/10 transition-colors duration-1000" />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 items-center relative z-10">
           <div className="space-y-6 md:space-y-8">
             <div className="flex items-center gap-4">
               <div className="h-[1px] w-12 bg-accent" />
-              <span className="text-accent font-mono text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Nota del Autor</span>
+              <span className="text-accent font-sans text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Nota del Autor</span>
             </div>
-            <h2 className="text-4xl md:text-6xl font-serif italic font-bold tracking-tighter leading-tight">
+            <h2 className="text-4xl md:text-6xl font-display font-bold tracking-tight leading-tight text-ink">
               Un mensaje de {storyInfo.author} para sus lectores.
             </h2>
-            <p className="text-muted text-lg md:text-xl leading-relaxed font-light italic">
+            <p className="text-muted text-lg md:text-xl leading-relaxed font-serif">
               "Esta obra nació de la necesidad de cuestionar qué estamos dispuestos a sacrificar por nuestra pasión. Espero que encuentren en estas líneas un reflejo de sus propias búsquedas."
             </p>
             <button 
               onClick={() => onAuthorMessageClick?.()}
-              className="w-full sm:w-auto px-10 py-5 border border-white/10 rounded-full hover:bg-white/5 transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px] font-bold"
+              className="w-full sm:w-auto px-10 py-5 border border-border rounded-full hover:bg-ink hover:text-bg transition-all duration-500 flex items-center justify-center gap-4 group uppercase tracking-[0.2em] text-[9px] md:text-[10px] font-sans font-medium text-ink"
             >
               Leer Mensaje Completo
               <MessageSquare size={16} md:size={18} className="text-accent" />
             </button>
           </div>
           <div className="relative">
-            <div className="aspect-square rounded-2xl md:rounded-3xl overflow-hidden border border-white/10 grayscale hover:grayscale-0 transition-all duration-1000">
+            <div className="aspect-square rounded-2xl md:rounded-3xl overflow-hidden border border-border grayscale hover:grayscale-0 transition-all duration-1000 shadow-xl">
               <img 
                 src={`https://picsum.photos/seed/${storyInfo.author.replace(/\s+/g, '')}/800/800`} 
                 alt={storyInfo.author}
@@ -1587,27 +1565,27 @@ function HomeView({
                 referrerPolicy="no-referrer"
               />
             </div>
-            <div className="absolute -bottom-4 -left-4 md:-bottom-8 -left-8 glass p-4 md:p-8 rounded-xl md:rounded-2xl border-white/10">
-              <p className="text-xl md:text-2xl font-serif italic font-bold">{storyInfo.author}</p>
-              <p className="text-[8px] md:text-[10px] font-mono text-muted uppercase tracking-widest">Autor</p>
+            <div className="absolute -bottom-4 -left-4 md:-bottom-8 -left-8 bg-surface p-4 md:p-8 rounded-xl md:rounded-2xl border border-border shadow-xl">
+              <p className="text-xl md:text-2xl font-display font-bold text-ink">{storyInfo.author}</p>
+              <p className="text-[8px] md:text-[10px] font-sans text-muted uppercase tracking-widest">Autor</p>
             </div>
           </div>
         </div>
       </motion.div>
 
       {/* Footer */}
-      <footer className="mt-24 md:mt-48 pt-12 md:pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10 md:gap-12">
-        <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-[8px] md:text-[10px] font-mono uppercase tracking-[0.4em] text-muted/40">
-          <button className="hover:text-accent transition-colors duration-500">Compartir</button>
-          <button className="hover:text-accent transition-colors duration-500">Favoritos</button>
-          <button className="hover:text-accent transition-colors duration-500">Reportar</button>
+      <footer className="mt-24 md:mt-48 pt-12 md:pt-16 border-t border-border flex flex-col md:flex-row justify-between items-center gap-10 md:gap-12">
+        <div className="flex flex-wrap justify-center gap-8 md:gap-12 text-[8px] md:text-[10px] font-sans uppercase tracking-[0.4em] text-muted">
+          <button className="hover:text-ink transition-colors duration-500">Compartir</button>
+          <button className="hover:text-ink transition-colors duration-500">Favoritos</button>
+          <button className="hover:text-ink transition-colors duration-500">Reportar</button>
         </div>
         <div className="flex items-center gap-6 md:gap-8">
           <div className="flex gap-4 md:gap-6">
-            <button className="text-muted/40 hover:text-white transition-colors duration-500"><Share2 size={16} md:size={18} /></button>
-            <button className="text-muted/40 hover:text-white transition-colors duration-500"><Heart size={16} md:size={18} /></button>
+            <button className="text-muted hover:text-ink transition-colors duration-500"><Share2 size={16} md:size={18} /></button>
+            <button className="text-muted hover:text-ink transition-colors duration-500"><Heart size={16} md:size={18} /></button>
           </div>
-          <p className="text-[8px] md:text-[10px] font-mono text-muted/20 tracking-[0.5em] uppercase">
+          <p className="text-[8px] md:text-[10px] font-sans text-muted tracking-[0.5em] uppercase">
             © 2026 SAM C. EDITORIAL
           </p>
         </div>
@@ -1816,19 +1794,19 @@ function AdminView({
       className="max-w-7xl mx-auto px-6 pt-32 pb-24"
     >
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 border-b border-black/5 dark:border-white/5 pb-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 border-b border-border pb-8">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <ShieldCheck className="text-accent" size={20} />
             <span className="text-accent text-xs font-bold uppercase tracking-widest">Panel Editorial Profesional</span>
           </div>
-          <h1 className="text-4xl font-serif font-bold tracking-tight">Gestión de Contenido</h1>
+          <h1 className="text-4xl font-display font-bold tracking-tight text-ink">Gestión de Contenido</h1>
         </div>
         
         <div className="flex items-center gap-4">
           <button 
             onClick={handleManualSync}
-            className="px-6 py-2 glass rounded-full text-xs font-bold uppercase tracking-widest text-accent hover:bg-accent/10 transition-all flex items-center gap-2"
+            className="px-6 py-2 bg-surface border border-border rounded-full text-xs font-bold uppercase tracking-widest text-accent hover:bg-accent/10 transition-all flex items-center gap-2"
             title="Sincronizar datos iniciales"
           >
             <RotateCcw size={14} />
@@ -1836,13 +1814,13 @@ function AdminView({
           </button>
           <button 
             onClick={onBack}
-            className="px-6 py-2 glass rounded-full text-xs font-bold uppercase tracking-widest hover:bg-black/5 dark:hover:bg-white/5 transition-all"
+            className="px-6 py-2 bg-surface border border-border rounded-full text-xs font-bold uppercase tracking-widest hover:bg-ink/5 transition-all text-ink"
           >
             Volver al Inicio
           </button>
           <button 
             onClick={handleLogout}
-            className="p-3 glass rounded-full text-red-500 hover:bg-red-500/10 transition-all duration-300"
+            className="p-3 bg-surface border border-border rounded-full text-red-500 hover:bg-red-500/10 transition-all duration-300"
           >
             <LogOut size={20} />
           </button>
@@ -1853,13 +1831,13 @@ function AdminView({
       <div className="flex gap-4 mb-8">
         <button 
           onClick={() => setActiveTab('stories')}
-          className={cn("px-8 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2", activeTab === 'stories' ? "bg-accent text-white shadow-lg shadow-accent/30" : "glass text-muted hover:text-ink")}
+          className={cn("px-8 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2", activeTab === 'stories' ? "bg-accent text-bg shadow-lg shadow-accent/30" : "bg-surface border border-border text-muted hover:text-ink")}
         >
           <BookOpen size={18} /> Historias
         </button>
         <button 
           onClick={() => setActiveTab('chapters')}
-          className={cn("px-8 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2", activeTab === 'chapters' ? "bg-accent text-white shadow-lg shadow-accent/30" : "glass text-muted hover:text-ink")}
+          className={cn("px-8 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2", activeTab === 'chapters' ? "bg-accent text-bg shadow-lg shadow-accent/30" : "bg-surface border border-border text-muted hover:text-ink")}
         >
           <FileText size={18} /> Capítulos
         </button>
@@ -1869,9 +1847,9 @@ function AdminView({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Sidebar List */}
           <div className="lg:col-span-4 space-y-4 h-[70vh] overflow-y-auto pr-4 custom-scrollbar">
-            <div className="sticky top-0 bg-bg/95 backdrop-blur-md z-10 pb-4 mb-4 border-b border-black/5 dark:border-white/5 flex justify-between items-center">
+            <div className="sticky top-0 bg-bg/95 backdrop-blur-md z-10 pb-4 mb-4 border-b border-border flex justify-between items-center">
               <p className="text-xs text-muted font-bold uppercase tracking-wider">Catálogo de Obras ({stories.length})</p>
-              <button onClick={handleAddNewStory} className="p-2 bg-accent text-white rounded-lg hover:bg-accent/80 transition-colors shadow-md">
+              <button onClick={handleAddNewStory} className="p-2 bg-accent text-bg rounded-lg hover:bg-accent/80 transition-colors shadow-md">
                 <Plus size={18} />
               </button>
             </div>
@@ -1879,8 +1857,8 @@ function AdminView({
               <motion.div 
                 key={story.id}
                 className={cn(
-                  "p-5 glass rounded-2xl border transition-all duration-300 cursor-pointer group relative overflow-hidden",
-                  editingStory?.id === story.id ? "border-accent bg-accent/5 ring-1 ring-accent/20" : "border-transparent hover:border-black/10 dark:hover:border-white/10"
+                  "p-5 bg-surface rounded-2xl border transition-all duration-300 cursor-pointer group relative overflow-hidden",
+                  editingStory?.id === story.id ? "border-accent bg-accent/5 ring-1 ring-accent/20" : "border-border hover:border-accent/30"
                 )}
                 onClick={() => handleEditStory(story)}
               >
@@ -1889,14 +1867,14 @@ function AdminView({
                     {story.coverUrl ? (
                       <img src={story.coverUrl} alt={story.title} className="w-14 h-20 rounded-lg object-cover shadow-md" referrerPolicy="no-referrer" />
                     ) : (
-                      <div className="w-14 h-20 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center border border-dashed border-black/10 dark:border-white/10"><BookOpen size={24} className="text-muted/30" /></div>
+                      <div className="w-14 h-20 rounded-lg bg-ink/5 flex items-center justify-center border border-dashed border-border"><BookOpen size={24} className="text-muted/30" /></div>
                     )}
                     <div className="space-y-1">
-                      <h4 className="font-serif font-bold text-base leading-tight">{story.title}</h4>
+                      <h4 className="font-display font-bold text-base leading-tight text-ink">{story.title}</h4>
                       <p className="text-xs text-muted font-medium">{story.author}</p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-[9px] px-2 py-0.5 bg-accent/10 text-accent rounded-full font-bold uppercase tracking-tighter">{story.status}</span>
-                        <span className="text-[9px] text-muted font-mono">{chapters.filter(c => c.storyId === story.id).length} caps</span>
+                        <span className="text-[9px] text-muted font-sans">{chapters.filter(c => c.storyId === story.id).length} caps</span>
                       </div>
                     </div>
                   </div>
@@ -1934,10 +1912,10 @@ function AdminView({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onSubmit={handleSaveStory}
-                className="glass p-8 rounded-2xl space-y-6"
+                className="bg-surface border border-border p-8 rounded-2xl space-y-6 shadow-sm"
               >
-                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-4">
-                  <h2 className="text-2xl font-serif font-bold">
+                <div className="flex items-center justify-between border-b border-border pb-4">
+                  <h2 className="text-2xl font-display font-bold text-ink">
                     {isAddingStory ? 'Nueva Historia' : `Editando: ${storyFormData.title}`}
                   </h2>
                   <button type="button" onClick={() => { setEditingStory(null); setIsAddingStory(false); }} className="p-2 text-muted hover:text-ink transition-colors">
@@ -1947,29 +1925,29 @@ function AdminView({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">ID (URL slug)</label>
-                    <input type="text" value={storyFormData.id} onChange={e => setStoryFormData({...storyFormData, id: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" required disabled={!isAddingStory} />
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">ID (URL slug)</label>
+                    <input type="text" value={storyFormData.id} onChange={e => setStoryFormData({...storyFormData, id: e.target.value})} className="w-full bg-bg border border-border rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all text-ink" required disabled={!isAddingStory} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Título</label>
-                    <input type="text" value={storyFormData.title} onChange={e => setStoryFormData({...storyFormData, title: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" required />
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">Título</label>
+                    <input type="text" value={storyFormData.title} onChange={e => setStoryFormData({...storyFormData, title: e.target.value})} className="w-full bg-bg border border-border rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all text-ink" required />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Autor</label>
-                    <input type="text" value={storyFormData.author} onChange={e => setStoryFormData({...storyFormData, author: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" required />
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">Autor</label>
+                    <input type="text" value={storyFormData.author} onChange={e => setStoryFormData({...storyFormData, author: e.target.value})} className="w-full bg-bg border border-border rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all text-ink" required />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Estado</label>
-                    <select value={storyFormData.status} onChange={e => setStoryFormData({...storyFormData, status: e.target.value as any})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all">
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">Estado</label>
+                    <select value={storyFormData.status} onChange={e => setStoryFormData({...storyFormData, status: e.target.value as any})} className="w-full bg-bg border border-border rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all text-ink">
                       <option value="Disponible">Disponible</option>
                       <option value="En Progreso">En Progreso</option>
                       <option value="Próximamente">Próximamente</option>
                     </select>
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Portada</label>
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">Portada</label>
                     <div className="flex gap-4 items-center">
-                      <div className="w-20 h-28 bg-black/5 dark:bg-white/5 rounded-lg overflow-hidden border border-black/10 dark:border-white/10 flex-shrink-0">
+                      <div className="w-20 h-28 bg-bg rounded-lg overflow-hidden border border-border flex-shrink-0">
                         {storyFormData.coverUrl ? (
                           <img src={storyFormData.coverUrl} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         ) : (
@@ -1981,7 +1959,7 @@ function AdminView({
                           type="url" 
                           value={storyFormData.coverUrl || ''} 
                           onChange={e => setStoryFormData({...storyFormData, coverUrl: e.target.value})} 
-                          className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-2 focus:border-accent outline-none text-xs transition-all" 
+                          className="w-full bg-bg border border-border rounded-xl px-4 py-2 focus:border-accent outline-none text-xs transition-all text-ink" 
                           placeholder="URL de la imagen (https://...)" 
                         />
                         <div className="relative">
@@ -2003,7 +1981,7 @@ function AdminView({
                           />
                           <label 
                             htmlFor="cover-upload" 
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-black/5 dark:bg-white/5 rounded-lg text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-accent hover:text-white transition-all border border-black/5 dark:border-white/5"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-surface rounded-lg text-[10px] font-bold uppercase tracking-widest cursor-pointer hover:bg-accent hover:text-bg transition-all border border-border text-ink"
                           >
                             Subir Archivo
                           </label>
@@ -2012,24 +1990,24 @@ function AdminView({
                     </div>
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Descripción</label>
-                    <textarea value={storyFormData.description} onChange={e => setStoryFormData({...storyFormData, description: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all h-24 resize-none" required />
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">Descripción</label>
+                    <textarea value={storyFormData.description} onChange={e => setStoryFormData({...storyFormData, description: e.target.value})} className="w-full bg-bg border border-border rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all h-24 resize-none text-ink" required />
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Géneros (separados por coma)</label>
-                    <input type="text" value={storyFormData.genres.join(', ')} onChange={e => setStoryFormData({...storyFormData, genres: e.target.value.split(',').map(g => g.trim()).filter(Boolean)})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" placeholder="Sci-Fi, Romance, Drama" />
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">Géneros (separados por coma)</label>
+                    <input type="text" value={storyFormData.genres.join(', ')} onChange={e => setStoryFormData({...storyFormData, genres: e.target.value.split(',').map(g => g.trim()).filter(Boolean)})} className="w-full bg-bg border border-border rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all text-ink" placeholder="Sci-Fi, Romance, Drama" />
                   </div>
                 </div>
 
                 <div className="flex justify-end pt-4">
-                  <button type="submit" className="px-8 py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 transition-all shadow-lg shadow-accent/20">
+                  <button type="submit" className="px-8 py-3 bg-ink text-bg font-bold rounded-xl hover:bg-accent transition-all shadow-lg">
                     Guardar Historia
                   </button>
                 </div>
               </motion.form>
             ) : (
               <div className="h-full flex items-center justify-center text-muted">
-                <p>Selecciona una historia para editar o crea una nueva.</p>
+                <p className="font-serif italic">Selecciona una historia para editar o crea una nueva.</p>
               </div>
             )}
           </div>
@@ -2040,11 +2018,11 @@ function AdminView({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Sidebar List */}
           <div className="lg:col-span-4 space-y-4 h-[70vh] overflow-y-auto pr-4 custom-scrollbar">
-            <div className="sticky top-0 bg-bg/90 backdrop-blur-md z-10 pb-4 mb-4 border-b border-black/5 dark:border-white/5 space-y-4">
+            <div className="sticky top-0 bg-bg/95 backdrop-blur-md z-10 pb-4 mb-4 border-b border-border space-y-4">
               <div className="flex justify-between items-center">
-                <p className="text-xs text-muted font-semibold uppercase tracking-wider">Capítulos ({chapters.length})</p>
-                <button onClick={handleAddNewChapter} className="p-2 bg-accent text-white rounded-full hover:bg-accent/80 transition-colors">
-                  <Plus size={16} />
+                <p className="text-xs text-muted font-bold uppercase tracking-wider">Capítulos ({chapters.length})</p>
+                <button onClick={handleAddNewChapter} className="p-2 bg-accent text-bg rounded-lg hover:bg-accent/80 transition-colors shadow-md">
+                  <Plus size={18} />
                 </button>
               </div>
               
@@ -2052,7 +2030,7 @@ function AdminView({
               <select 
                 value={chapterFilter} 
                 onChange={(e) => setChapterFilter(e.target.value)}
-                className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:border-accent transition-all"
+                className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-accent transition-all text-ink"
               >
                 <option value="all">Todas las historias</option>
                 {stories.map(s => (
@@ -2067,8 +2045,8 @@ function AdminView({
               <motion.div 
                 key={(chapter as any).docId || `chapter-${chapter.storyId}-${chapter.id}`}
                 className={cn(
-                  "p-4 glass rounded-xl border transition-all duration-300 cursor-pointer group relative overflow-hidden",
-                  editingChapter?.id === chapter.id ? "border-accent bg-accent/5" : "border-transparent hover:border-black/10 dark:hover:border-white/10"
+                  "p-5 bg-surface rounded-2xl border transition-all duration-300 cursor-pointer group relative overflow-hidden",
+                  editingChapter?.id === chapter.id ? "border-accent bg-accent/5 ring-1 ring-accent/20" : "border-border hover:border-accent/30"
                 )}
                 onClick={() => handleEditChapter(chapter as Chapter & { docId: string })}
               >
@@ -2111,10 +2089,10 @@ function AdminView({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onSubmit={handleSaveChapter}
-                className="glass p-8 rounded-2xl space-y-6"
+                className="bg-surface border border-border p-8 rounded-2xl space-y-6 shadow-sm"
               >
-                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-4">
-                  <h2 className="text-2xl font-serif font-bold">
+                <div className="flex items-center justify-between border-b border-border pb-4">
+                  <h2 className="text-2xl font-display font-bold text-ink">
                     {isAddingChapter ? 'Nuevo Capítulo' : `Editando Capítulo ${chapterFormData.id}`}
                   </h2>
                   <button type="button" onClick={() => { setEditingChapter(null); setIsAddingChapter(false); }} className="p-2 text-muted hover:text-ink transition-colors">
@@ -2124,16 +2102,16 @@ function AdminView({
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                   <div className="md:col-span-2 space-y-2">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">ID</label>
-                    <input type="number" value={chapterFormData.id} onChange={e => setChapterFormData({...chapterFormData, id: parseInt(e.target.value)})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" required />
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">ID</label>
+                    <input type="number" value={chapterFormData.id} onChange={e => setChapterFormData({...chapterFormData, id: parseInt(e.target.value)})} className="w-full bg-bg border border-border rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all text-ink" required />
                   </div>
                   <div className="md:col-span-6 space-y-2">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Título</label>
-                    <input type="text" value={chapterFormData.title} onChange={e => setChapterFormData({...chapterFormData, title: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all" required />
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">Título</label>
+                    <input type="text" value={chapterFormData.title} onChange={e => setChapterFormData({...chapterFormData, title: e.target.value})} className="w-full bg-bg border border-border rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all text-ink" required />
                   </div>
                   <div className="md:col-span-4 space-y-2">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Historia</label>
-                    <select value={chapterFormData.storyId} onChange={e => setChapterFormData({...chapterFormData, storyId: e.target.value})} className="w-full bg-black/5 dark:bg-white/5 border border-transparent rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all">
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">Historia</label>
+                    <select value={chapterFormData.storyId} onChange={e => setChapterFormData({...chapterFormData, storyId: e.target.value})} className="w-full bg-bg border border-border rounded-xl px-4 py-3 focus:border-accent outline-none text-sm transition-all text-ink">
                       {stories.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
                     </select>
                   </div>
@@ -2141,29 +2119,29 @@ function AdminView({
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-muted uppercase tracking-wider">Contenido</label>
-                    <div className="flex bg-black/5 dark:bg-white/5 rounded-lg p-1">
-                      <button type="button" onClick={() => setIsPreview(false)} className={cn("px-4 py-1.5 rounded-md text-xs font-semibold transition-all", !isPreview ? "bg-white dark:bg-black shadow-sm" : "text-muted")}>Editar</button>
-                      <button type="button" onClick={() => setIsPreview(true)} className={cn("px-4 py-1.5 rounded-md text-xs font-semibold transition-all", isPreview ? "bg-white dark:bg-black shadow-sm" : "text-muted")}>Vista Previa</button>
+                    <label className="text-[10px] font-sans font-bold text-muted uppercase tracking-widest">Contenido</label>
+                    <div className="flex bg-bg border border-border rounded-lg p-1">
+                      <button type="button" onClick={() => setIsPreview(false)} className={cn("px-4 py-1.5 rounded-md text-xs font-semibold transition-all", !isPreview ? "bg-surface shadow-sm text-ink" : "text-muted")}>Editar</button>
+                      <button type="button" onClick={() => setIsPreview(true)} className={cn("px-4 py-1.5 rounded-md text-xs font-semibold transition-all", isPreview ? "bg-surface shadow-sm text-ink" : "text-muted")}>Vista Previa</button>
                     </div>
                   </div>
                   
                   {isPreview ? (
-                    <div className="w-full h-[400px] bg-black/5 dark:bg-white/5 rounded-xl p-6 overflow-y-auto custom-scrollbar font-serif text-lg leading-relaxed whitespace-pre-wrap">
+                    <div className="w-full h-[400px] bg-bg border border-border rounded-xl p-6 overflow-y-auto custom-scrollbar font-serif text-lg leading-relaxed whitespace-pre-wrap text-ink">
                       {chapterFormData.content || <span className="text-muted italic">Sin contenido...</span>}
                     </div>
                   ) : (
                     <textarea 
                       value={chapterFormData.content}
                       onChange={e => setChapterFormData({...chapterFormData, content: e.target.value})}
-                      className="w-full h-[400px] bg-black/5 dark:bg-white/5 border border-transparent rounded-xl p-6 focus:border-accent outline-none font-serif text-lg leading-relaxed resize-none transition-all custom-scrollbar"
+                      className="w-full h-[400px] bg-bg border border-border rounded-xl p-6 focus:border-accent outline-none font-serif text-lg leading-relaxed resize-none transition-all custom-scrollbar text-ink"
                       placeholder="Escribe el contenido aquí..."
                     />
                   )}
                 </div>
 
                 <div className="flex justify-end pt-4">
-                  <button type="submit" disabled={isSavingChapter} className="px-8 py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 transition-all shadow-lg shadow-accent/20 disabled:opacity-50 flex items-center gap-2">
+                  <button type="submit" disabled={isSavingChapter} className="px-8 py-3 bg-ink text-bg font-bold rounded-xl hover:bg-accent transition-all shadow-lg disabled:opacity-50 flex items-center gap-2">
                     {isSavingChapter ? <RotateCcw size={16} className="animate-spin" /> : <Save size={16} />}
                     Guardar Capítulo
                   </button>
@@ -2235,9 +2213,9 @@ function ReadingView({
       className="min-h-screen bg-bg relative"
     >
       {/* Progress Bar - Minimalist */}
-      <div className="fixed top-0 left-0 w-full h-[2px] bg-white/5 z-[100]">
+      <div className="fixed top-0 left-0 w-full h-[2px] bg-border z-[100]">
         <motion.div 
-          className="h-full bg-accent shadow-[0_0_10px_rgba(242,125,38,0.5)]"
+          className="h-full bg-accent shadow-[0_0_10px_rgba(140,107,74,0.5)]"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -2248,9 +2226,9 @@ function ReadingView({
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           onClick={handleBack}
-          className="p-3 md:p-4 glass rounded-full hover:bg-white/10 transition-all duration-500 pointer-events-auto group border-white/5"
+          className="p-3 md:p-4 bg-surface/80 backdrop-blur-md rounded-full hover:bg-ink/5 transition-all duration-500 pointer-events-auto group border border-border"
         >
-          <ChevronLeft size={18} className="md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
+          <ChevronLeft size={18} className="md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform text-ink" />
         </motion.button>
         
         <motion.div 
@@ -2261,16 +2239,16 @@ function ReadingView({
           <button 
             onClick={handleBookmark}
             className={cn(
-              "p-3 md:p-4 glass rounded-full transition-all duration-500 border-white/5",
-              currentBookmark !== undefined ? "text-accent border-accent/30" : "hover:bg-white/10"
+              "p-3 md:p-4 bg-surface/80 backdrop-blur-md rounded-full transition-all duration-500 border border-border text-ink",
+              currentBookmark !== undefined ? "text-accent border-accent/30" : "hover:bg-ink/5"
             )}
           >
             {currentBookmark !== undefined ? <BookmarkCheck size={18} className="md:w-5 md:h-5" /> : <Bookmark size={18} className="md:w-5 md:h-5" />}
           </button>
-          <button className="p-3 md:p-4 glass rounded-full hover:bg-white/10 transition-all duration-500 border-white/5">
+          <button className="p-3 md:p-4 bg-surface/80 backdrop-blur-md rounded-full hover:bg-ink/5 transition-all duration-500 border border-border text-ink">
             <Heart size={18} className="md:w-5 md:h-5" />
           </button>
-          <button className="p-3 md:p-4 glass rounded-full hover:bg-white/10 transition-all duration-500 border-white/5">
+          <button className="p-3 md:p-4 bg-surface/80 backdrop-blur-md rounded-full hover:bg-ink/5 transition-all duration-500 border border-border text-ink">
             <Share2 size={18} className="md:w-5 md:h-5" />
           </button>
         </motion.div>
@@ -2283,7 +2261,7 @@ function ReadingView({
             initial={{ opacity: 0, y: 30, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.9 }}
-            className="fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-[110] px-6 md:px-10 py-3 md:py-4 bg-white text-bg rounded-full font-mono text-[8px] md:text-[10px] uppercase tracking-[0.3em] font-bold shadow-2xl"
+            className="fixed bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-[110] px-6 md:px-10 py-3 md:py-4 bg-ink text-bg rounded-full font-sans text-[8px] md:text-[10px] uppercase tracking-[0.3em] font-bold shadow-2xl"
           >
             Progreso Sincronizado
           </motion.div>
@@ -2295,29 +2273,23 @@ function ReadingView({
         <header className="space-y-8 md:space-y-12 text-center mb-20 md:mb-32">
           <div className="flex items-center justify-center gap-4">
             <div className="h-[1px] w-8 md:w-12 bg-accent/30" />
-            <span className="text-accent font-mono text-[9px] md:text-[10px] tracking-[0.5em] uppercase font-bold">Capítulo {String(chapter.id).padStart(2, '0')}</span>
+            <span className="text-accent font-sans text-[9px] md:text-[10px] tracking-[0.5em] uppercase font-bold">Capítulo {String(chapter.id).padStart(2, '0')}</span>
             <div className="h-[1px] w-8 md:w-12 bg-accent/30" />
           </div>
           
-          <h1 className="text-4xl sm:text-6xl md:text-8xl font-serif font-bold tracking-tighter leading-none">
-            <ShinyText 
-              text={chapter.title} 
-              speed={2} 
-              color="#ffffff" 
-              shineColor="#f27d26" 
-              spread={120}
-            />
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-display font-bold tracking-tight leading-none text-ink">
+            {chapter.title}
           </h1>
           
           <div className="flex items-center justify-center gap-4 md:gap-8 pt-4 md:pt-8">
             <div className="flex flex-col items-center gap-1 md:gap-2">
-              <span className="text-[8px] md:text-[9px] font-mono text-muted/30 uppercase tracking-widest">Tiempo Est.</span>
-              <span className="text-xs md:text-sm font-serif italic">8 min</span>
+              <span className="text-[8px] md:text-[9px] font-sans text-muted uppercase tracking-widest">Tiempo Est.</span>
+              <span className="text-xs md:text-sm font-serif text-ink">8 min</span>
             </div>
-            <div className="w-[1px] h-6 md:h-8 bg-white/5" />
+            <div className="w-[1px] h-6 md:h-8 bg-border" />
             <div className="flex flex-col items-center gap-1 md:gap-2">
-              <span className="text-[8px] md:text-[9px] font-mono text-muted/30 uppercase tracking-widest">Palabras</span>
-              <span className="text-xs md:text-sm font-serif italic">{chapter.content?.split(/\s+/).length}</span>
+              <span className="text-[8px] md:text-[9px] font-sans text-muted uppercase tracking-widest">Palabras</span>
+              <span className="text-xs md:text-sm font-serif text-ink">{chapter.content?.split(/\s+/).length}</span>
             </div>
           </div>
         </header>
@@ -2330,11 +2302,11 @@ function ReadingView({
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8 }}
-              className="text-lg md:text-2xl leading-[1.8] font-light text-white/80 font-serif selection:bg-accent/30 selection:text-white"
+              className="text-lg md:text-2xl leading-[1.8] text-ink font-serif"
             >
               {i === 0 ? (
                 <>
-                  <span className="text-5xl md:text-7xl font-bold text-accent float-left mr-3 md:mr-4 mt-1 md:mt-2 leading-[0.8] font-serif">
+                  <span className="text-5xl md:text-7xl font-bold text-accent float-left mr-3 md:mr-4 mt-1 md:mt-2 leading-[0.8] font-display">
                     {para.charAt(0)}
                   </span>
                   {para.slice(1)}
@@ -2344,7 +2316,7 @@ function ReadingView({
           ))}
         </div>
 
-        <footer className="mt-32 md:mt-48 pt-16 md:pt-24 border-t border-white/5 text-center space-y-12 md:space-y-16">
+        <footer className="mt-32 md:mt-48 pt-16 md:pt-24 border-t border-border text-center space-y-12 md:space-y-16">
           <div className="space-y-4">
             <p className="text-muted font-serif italic text-xl md:text-2xl">Fin del Capítulo {chapter.id}</p>
             <div className="w-12 md:w-16 h-[1px] bg-accent/30 mx-auto" />
@@ -2354,14 +2326,14 @@ function ReadingView({
             {isLastChapter ? (
               <button 
                 onClick={onFinish}
-                className="w-full md:w-auto px-12 md:px-20 py-5 md:py-6 bg-white text-bg rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 font-bold uppercase tracking-[0.2em] text-[9px] md:text-[10px] shadow-2xl shadow-white/5"
+                className="w-full md:w-auto px-12 md:px-20 py-5 md:py-6 bg-ink text-bg rounded-full hover:bg-accent hover:scale-105 transition-all duration-500 font-bold uppercase tracking-[0.2em] text-[9px] md:text-[10px] shadow-2xl"
               >
                 Finalizar Obra
               </button>
             ) : (
               <button 
                 onClick={handleBack}
-                className="w-full md:w-auto px-12 md:px-20 py-5 md:py-6 glass rounded-full hover:bg-white/10 hover:scale-105 transition-all duration-500 font-bold uppercase tracking-[0.2em] text-[9px] md:text-[10px] border-white/5"
+                className="w-full md:w-auto px-12 md:px-20 py-5 md:py-6 bg-surface border border-border text-ink rounded-full hover:bg-ink/5 hover:scale-105 transition-all duration-500 font-bold uppercase tracking-[0.2em] text-[9px] md:text-[10px]"
               >
                 Volver al Índice
               </button>
@@ -2369,10 +2341,10 @@ function ReadingView({
           </div>
 
           <div className="pt-16 md:pt-24 space-y-4">
-            <p className="text-[8px] md:text-[9px] font-mono text-muted/20 tracking-[0.5em] uppercase">
+            <p className="text-[8px] md:text-[9px] font-sans text-muted tracking-[0.5em] uppercase">
               © 2026 SAM C. EDITORIAL • TODOS LOS DERECHOS RESERVADOS
             </p>
-            <div className="flex justify-center gap-6 md:gap-8 text-muted/20">
+            <div className="flex justify-center gap-6 md:gap-8 text-muted">
               <Share2 size={14} className="md:w-4 md:h-4" />
               <Heart size={14} className="md:w-4 md:h-4" />
               <Bookmark size={14} className="md:w-4 md:h-4" />
@@ -2384,7 +2356,7 @@ function ReadingView({
       {/* Decorative Elements */}
       <div className="fixed inset-0 pointer-events-none z-[-1]">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-accent/[0.02] blur-[150px] rounded-full -mr-96 -mt-96" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-white/[0.01] blur-[120px] rounded-full -ml-48 -mb-48" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-ink/[0.01] blur-[120px] rounded-full -ml-48 -mb-48" />
       </div>
     </motion.div>
   );
