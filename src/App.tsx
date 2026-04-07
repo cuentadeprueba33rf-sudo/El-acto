@@ -583,6 +583,8 @@ export default function App() {
                   onBack={() => setView('catalog')} 
                   stories={stories}
                   setStories={setStories}
+                  isAdmin={isAdmin}
+                  handleFirestoreError={handleFirestoreError}
                 />
               )}
             </AnimatePresence>
@@ -1500,7 +1502,7 @@ function HomeView({
           {chapters.filter(c => c.storyId === storyId).length > 0 ? (
             chapters.filter(c => c.storyId === storyId).map((chapter, index) => (
               <motion.div 
-                key={chapter.id}
+                key={(chapter as any).docId || `chapter-${chapter.id}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -1618,12 +1620,16 @@ function AdminView({
   chapters, 
   onBack,
   stories,
-  setStories
+  setStories,
+  isAdmin,
+  handleFirestoreError
 }: { 
   chapters: Chapter[]; 
   onBack: () => void;
   stories: StoryInfo[];
   setStories: React.Dispatch<React.SetStateAction<StoryInfo[]>>;
+  isAdmin: boolean;
+  handleFirestoreError: (error: any, operation: string, path: string) => void;
   key?: string | number;
 }) {
   const [activeTab, setActiveTab] = useState<'stories' | 'chapters'>('stories');
@@ -2059,7 +2065,7 @@ function AdminView({
               .filter(c => chapterFilter === 'all' || c.storyId === chapterFilter)
               .map(chapter => (
               <motion.div 
-                key={chapter.id}
+                key={(chapter as any).docId || `chapter-${chapter.storyId}-${chapter.id}`}
                 className={cn(
                   "p-4 glass rounded-xl border transition-all duration-300 cursor-pointer group relative overflow-hidden",
                   editingChapter?.id === chapter.id ? "border-accent bg-accent/5" : "border-transparent hover:border-black/10 dark:hover:border-white/10"
