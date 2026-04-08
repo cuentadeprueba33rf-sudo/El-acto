@@ -28,7 +28,8 @@ import {
   Sparkles,
   Star,
   Copy,
-  FileText
+  FileText,
+  BadgeCheck
 } from 'lucide-react';
 import { 
   doc, 
@@ -851,6 +852,14 @@ function LoadingScreen(_props: { key?: string | number; onAuthorClick?: () => vo
             </motion.span>
           ))}
           <motion.div
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 2.5, duration: 0.4, type: "spring" }}
+            className="ml-2 self-center"
+          >
+            <BadgeCheck size={24} className="text-blue-500" fill="currentColor" stroke="white" />
+          </motion.div>
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0] }}
             transition={{ 
@@ -1126,7 +1135,12 @@ function CatalogView({
               </div>
               <div className="space-y-1.5 flex-grow">
                 <h3 className="font-display font-bold text-lg md:text-xl leading-tight text-ink group-hover:text-accent transition-colors duration-300">{story.title}</h3>
-                <p className="text-[10px] font-sans text-muted uppercase tracking-widest">{story.author}</p>
+                <p className="text-[10px] font-sans text-muted uppercase tracking-widest flex items-center gap-1">
+                  {story.author}
+                  {['sam c.', 'samc c.', 'carolina'].includes(story.author.toLowerCase().trim()) && (
+                    <BadgeCheck size={12} className="text-blue-500" fill="currentColor" stroke="white" />
+                  )}
+                </p>
               </div>
             </motion.div>
           ))}
@@ -1316,7 +1330,12 @@ function HomeView({
               <div className="h-[1px] w-12 bg-accent/30" />
             </div>
             <h1 className="text-7xl md:text-[10rem] font-display font-bold tracking-tighter leading-none text-ink">{storyInfo.title}</h1>
-            <p className="text-muted font-sans uppercase tracking-[0.5em] text-xs">Una Obra de {storyInfo.author}</p>
+            <p className="text-muted font-sans uppercase tracking-[0.5em] text-xs flex items-center justify-center gap-2">
+              Una Obra de {storyInfo.author}
+              {['sam c.', 'samc c.', 'carolina'].includes(storyInfo.author.toLowerCase().trim()) && (
+                <BadgeCheck size={14} className="text-blue-500" fill="currentColor" stroke="white" />
+              )}
+            </p>
           </div>
         </div>
 
@@ -1404,7 +1423,12 @@ function HomeView({
               {storyInfo.title}
             </h1>
             <div className="flex flex-wrap items-center gap-4 md:gap-6 text-muted font-sans text-[9px] md:text-[11px] uppercase tracking-[0.3em]">
-              <span>Escrito por {storyInfo.author}</span>
+              <span className="flex items-center gap-1">
+                Escrito por {storyInfo.author}
+                {['sam c.', 'samc c.', 'carolina'].includes(storyInfo.author.toLowerCase().trim()) && (
+                  <BadgeCheck size={12} className="text-blue-500" fill="currentColor" stroke="white" />
+                )}
+              </span>
               <div className="w-1 h-1 rounded-full bg-accent hidden sm:block" />
               <span>{storyInfo.genres.join(' • ')}</span>
             </div>
@@ -1542,8 +1566,12 @@ function HomeView({
               <div className="h-[1px] w-12 bg-accent" />
               <span className="text-accent font-sans text-[9px] md:text-[10px] uppercase tracking-[0.5em] font-bold">Nota del Autor</span>
             </div>
-            <h2 className="text-4xl md:text-6xl font-display font-bold tracking-tight leading-tight text-ink">
-              Un mensaje de {storyInfo.author} para sus lectores.
+            <h2 className="text-4xl md:text-6xl font-display font-bold tracking-tight leading-tight text-ink flex items-center gap-3 flex-wrap">
+              Un mensaje de {storyInfo.author}
+              {['sam c.', 'samc c.', 'carolina'].includes(storyInfo.author.toLowerCase().trim()) && (
+                <BadgeCheck size={32} className="text-blue-500" fill="currentColor" stroke="white" />
+              )}
+              para sus lectores.
             </h2>
             <p className="text-muted text-lg md:text-xl leading-relaxed font-serif">
               "Esta obra nació de la necesidad de cuestionar qué estamos dispuestos a sacrificar por nuestra pasión. Espero que encuentren en estas líneas un reflejo de sus propias búsquedas."
@@ -1566,7 +1594,12 @@ function HomeView({
               />
             </div>
             <div className="absolute -bottom-4 -left-4 md:-bottom-8 -left-8 bg-surface p-4 md:p-8 rounded-xl md:rounded-2xl border border-border shadow-xl">
-              <p className="text-xl md:text-2xl font-display font-bold text-ink">{storyInfo.author}</p>
+              <p className="text-xl md:text-2xl font-display font-bold text-ink flex items-center gap-2">
+                {storyInfo.author}
+                {['sam c.', 'samc c.', 'carolina'].includes(storyInfo.author.toLowerCase().trim()) && (
+                  <BadgeCheck size={20} className="text-blue-500" fill="currentColor" stroke="white" />
+                )}
+              </p>
               <p className="text-[8px] md:text-[10px] font-sans text-muted uppercase tracking-widest">Autor</p>
             </div>
           </div>
@@ -1879,7 +1912,12 @@ function AdminView({
                     )}
                     <div className="space-y-1">
                       <h4 className="font-display font-bold text-base leading-tight text-ink">{story.title}</h4>
-                      <p className="text-xs text-muted font-medium">{story.author}</p>
+                      <p className="text-xs text-muted font-medium flex items-center gap-1">
+                        {story.author}
+                        {['sam c.', 'samc c.', 'carolina'].includes(story.author.toLowerCase().trim()) && (
+                          <BadgeCheck size={12} className="text-blue-500" fill="currentColor" stroke="white" />
+                        )}
+                      </p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-[9px] px-2 py-0.5 bg-accent/10 text-accent rounded-full font-bold uppercase tracking-tighter">{story.status}</span>
                         <span className="text-[9px] text-muted font-sans">{chapters.filter(c => c.storyId === story.id).length} caps</span>
@@ -1974,14 +2012,49 @@ function AdminView({
                           <input 
                             type="file" 
                             accept="image/*" 
-                            onChange={(e) => {
+                            onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  setStoryFormData({...storyFormData, coverUrl: reader.result as string});
-                                };
-                                reader.readAsDataURL(file);
+                                try {
+                                  const compressedDataUrl = await new Promise<string>((resolve, reject) => {
+                                    const reader = new FileReader();
+                                    reader.onload = (event) => {
+                                      const img = new Image();
+                                      img.onload = () => {
+                                        const canvas = document.createElement('canvas');
+                                        const MAX_WIDTH = 800;
+                                        const MAX_HEIGHT = 1200;
+                                        let width = img.width;
+                                        let height = img.height;
+
+                                        if (width > height) {
+                                          if (width > MAX_WIDTH) {
+                                            height *= MAX_WIDTH / width;
+                                            width = MAX_WIDTH;
+                                          }
+                                        } else {
+                                          if (height > MAX_HEIGHT) {
+                                            width *= MAX_HEIGHT / height;
+                                            height = MAX_HEIGHT;
+                                          }
+                                        }
+                                        canvas.width = width;
+                                        canvas.height = height;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx?.drawImage(img, 0, 0, width, height);
+                                        resolve(canvas.toDataURL('image/jpeg', 0.7));
+                                      };
+                                      img.onerror = reject;
+                                      img.src = event.target?.result as string;
+                                    };
+                                    reader.onerror = reject;
+                                    reader.readAsDataURL(file);
+                                  });
+                                  setStoryFormData({...storyFormData, coverUrl: compressedDataUrl});
+                                } catch (error) {
+                                  console.error("Error compressing image:", error);
+                                  alert("Error al procesar la imagen.");
+                                }
                               }
                             }}
                             className="hidden" 
